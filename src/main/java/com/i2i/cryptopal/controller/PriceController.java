@@ -14,9 +14,11 @@ import java.util.Map;
 /**
  * Fiyat işlemlerini dış dünyaya (Frontend) açan API Kapısı.
  * Tamamen Emirin yazdığı PriceTrendRepository altyapısını kullanır.
+ *  API sozlesmesindeki /api/market/prices formatına
+ *  uyum sağlamak amacıyla RequestMapping adresi /api/market olarak güncelledim (Ferhat)
  */
 @RestController
-@RequestMapping("/api/prices")
+@RequestMapping("/api/market")
 @RequiredArgsConstructor  //lombok'un otomatik olarak constructor oluşturmasını sağlar, böylece final değişkenlerimizi Spring Boot otomatik olarak inject eder.
 @CrossOrigin(origins = "*") // Frontend'in port çakışması yaşamadan (CORS) bağlanabilmesi için
 public class PriceController {
@@ -25,10 +27,11 @@ public class PriceController {
     private final PriceTrendRepository priceTrendRepository;
 
     /**
-     * GET /api/prices/current
+     * GET /api/prices/current ---> bu kısmı api sözleşmesine uyarak uyuşmazlığın oluşmaması için /current adresi / prices yapıldı ( Ferhat)
      * Redis'ten BTC ve ETH'nin anlık fiyatını hızlıca döner.
+
      */
-    @GetMapping("/current")
+    @GetMapping("/prices")
     public ResponseEntity<Map<String, String>> getCurrentPrices() {
         Map<String, String> prices = new HashMap<>();
         
@@ -46,6 +49,7 @@ public class PriceController {
      * GET /api/prices/history?asset=BTC
      * PriceTrendRepository metodunu kullanarak, 
      * parametre olarak gelen varlığın (BTC veya ETH) geçmiş fiyatlarını kronolojik döner.
+     * RequestMapping /api/market olduğu için bu ucun adresi /api/market/history haline geldi (Ferhat)
      */
     @GetMapping("/history")
     public ResponseEntity<List<PriceTrend>> getPriceHistory(@RequestParam(defaultValue = "BTC") String asset) {
