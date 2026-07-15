@@ -8,14 +8,14 @@ CREATE TABLE IF NOT EXISTS users (
     balance NUMERIC(18, 2) NOT NULL DEFAULT 0.00
 );
 
--- 2. Kullanıcı Cüzdanları (Varlık Miktarları)
+-- 2. Kullanıcı Cüzdanları (Model yapısıyla uyumlu hale getirildi)
 CREATE TABLE IF NOT EXISTS user_wallets (
     id BIGSERIAL PRIMARY KEY,
-    user_id BIGINT NOT NULL,
-    asset_name VARCHAR(10) NOT NULL,
-    amount NUMERIC(18, 8) NOT NULL DEFAULT 0.00000000,
-    CONSTRAINT fk_wallet_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-    CONSTRAINT uq_user_asset UNIQUE (user_id, asset_name)
+    user_id BIGINT NOT NULL UNIQUE,
+    usdt_balance NUMERIC(18, 2) NOT NULL DEFAULT 0.00,
+    btc_balance NUMERIC(18, 8) NOT NULL DEFAULT 0.00000000,
+    eth_balance NUMERIC(18, 8) NOT NULL DEFAULT 0.00000000,
+    CONSTRAINT fk_wallet_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 -- 3. İşlem Geçmişi (Alım/Satım Logları)
