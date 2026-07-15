@@ -1,0 +1,56 @@
+package com.i2i.cryptopal.controller;
+
+import com.i2i.cryptopal.model.PriceTrend;
+import com.i2i.cryptopal.repository.PriceTrendRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * Fiyat işlemlerini dış dünyaya (Frontend) açan API Kapısı.
+ * Tamamen Emirin yazdığı PriceTrendRepository altyapısını kullanır.
+ */
+@RestController
+@RequestMapping("/api/prices")
+@RequiredArgsConstructor  //lombok'un otomatik olarak constructor oluşturmasını sağlar, böylece final değişkenlerimizi Spring Boot otomatik olarak inject eder.
+@CrossOrigin(origins = "*") // Frontend'in port çakışması yaşamadan (CORS) bağlanabilmesi için
+public class PriceController {
+
+    private final StringRedisTemplate redisTemplate;
+    private final PriceTrendRepository priceTrendRepository;
+
+    /**
+     * GET /api/prices/current
+     * Redis'ten BTC ve ETH'nin anlık fiyatını hızlıca döner.
+     */
+    @GetMapping("/current")
+    public ResponseEntity<Map<String, String>> getCurrentPrices() {
+        Map<String, String> prices = new HashMap<>();
+        
+        String btcPrice = redisTemplate.opsForValue().get("BTC");
+        String ethPrice = redisTemplate.opsForValue().get("ETH");
+
+        // Redis boşsa veya henüz başlamadıysa null dönüp frontend'i çökertmesin diye koruma
+        prices.put("BTC", btcPrice != null ? btcPrice : "0.00");
+        prices.put("ETH", ethPrice != null ? ethPrice : "0.00");
+
+        return ResponseEntity.ok(prices);
+    }
+
+    /**
+     * GET /api/prices/history?asset=BTC
+     * PriceTrendRepository metodunu kullanarak, 
+     * parametre olarak gelen varlığın (BTC veya ETH) geçmiş fiyatlarını kronolojik döner.
+     */
+    @GetMapping("/history")
+    public ResponseEntity<List<PriceTrend>> getPriceHistory(@RequestParam(defaultValue = "BTC") String asset) {
+        // Doğrudan bizim tasarladığımız veritabanı sorgusunu çağırıyoruz! Parametre olarak hiçbirşey girilmesse varsayılan olarak btc geçmişini getirir
+        List<PriceTrend> history = priceTrendRepository.findByAssetNameOrderByCreatedAtAsc(asset);
+        return ResponseEntity.ok(history);
+    }
+}
