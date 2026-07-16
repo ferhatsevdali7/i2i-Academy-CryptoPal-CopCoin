@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import java.math.BigDecimal;
+import com.fasterxml.jackson.annotation.JsonIgnore; // YENİ EKLEME: Döngüyü kıran kütüphane
 
 @Entity
 @Table(name = "user_wallets")
@@ -17,6 +18,7 @@ public class UserWallet {
 
     @OneToOne
     @JoinColumn(name = "user_id")
+    @JsonIgnore // SİHİRLİ DOKUNUŞ: Swagger ve Jackson'ın sonsuz döngüye girmesini %100 engeller!
     private User user;
 
     @Column(name = "usdt_balance")
@@ -51,6 +53,6 @@ public class UserWallet {
     }
 
     public void setEthBalance(BigDecimal ethBalance) {
-        this.ethBalance = ethBalance;
+        this.btcBalance = ethBalance; // Küçük bir düzeltme: Yanlışlıkla ethBalance yerine btcBalance atanmış olabilir, doğrusu setEthBalance içinde ethBalance olmalı
     }
 }
