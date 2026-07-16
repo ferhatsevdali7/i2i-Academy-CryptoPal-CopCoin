@@ -1,5 +1,7 @@
 package com.i2i.cryptopal.controller;
 
+import com.i2i.cryptopal.dto.LoginRequest;
+import com.i2i.cryptopal.dto.LoginResponse;
 import com.i2i.cryptopal.dto.RegisterRequest;
 import com.i2i.cryptopal.dto.RegisterResponse;
 import com.i2i.cryptopal.model.User;
@@ -31,5 +33,26 @@ public class AuthController {
         );
         // 201 created kodu dödürme kayıt başarılı
         return new ResponseEntity<>(response, HttpStatus.CREATED);
+    }
+
+
+    // Kullanıcı giriş isteğini HTTP POST ile karşılıyoruz
+    // Gelen verileri doğrula şifreyi kontrol et ve Redise token kaydet
+    // Kullanıcının güncel bakiyesini arayüzde göstermek için veritabanından çekiyoruz
+    // Giriş başarılı olunca 200 OK koduyla token ve kullanıcı bilgilerini dönüyoruz
+
+    @PostMapping("/login")
+    public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
+        String token = userService.loginUser(request.getUsername(), request.getPassword());
+        User user = userService.getUserByUsername(request.getUsername());
+
+        LoginResponse response = new LoginResponse(
+                token,
+                user.getUsername(),
+                user.getBalance(),
+                "Giriş başarılı. Oturum Redis üzerinde başlatıldı."
+        );
+
+        return ResponseEntity.ok(response);
     }
 }

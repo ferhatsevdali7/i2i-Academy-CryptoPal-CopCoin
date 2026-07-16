@@ -5,27 +5,32 @@ import com.i2i.cryptopal.model.UserWallet;
 import com.i2i.cryptopal.repository.UserRepository;
 import com.i2i.cryptopal.repository.UserWalletRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.Duration;
 import java.util.Random;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 public class UserService {
 
     private final UserRepository userRepository;
-
-    // Emir'in veritabanina OneToOne iliskiyle usdt_balance, btc_balance, eth_balance
+    
+    // Emir'in veritabanina OneToOne iliskiyle usdt_balance, btc_balance, eth_balance 
     // kolunlarını eklemesi üzerine yeni kadolan kullnıcının cüzdanını otomatik oluşturmak için ekledim
     private final UserWalletRepository userWalletRepository; 
     
     private final PasswordEncoder passwordEncoder;
+    private final StringRedisTemplate redisTemplate; // Redis baglantisi icin ekledim
+    
     private final Random random = new Random();
 
-    @Transactional // ACID kurallari gereği Kullanici kaydolurken cüzdan kaydi da basarili olmak zorundadir
+    @Transactional // ACID kurallari geregi: Kullanici kaydolurken cuzdan kaydi da basarili olmak zorundadir.
     public User registerUser(String username, String password) {
         if (userRepository.findByUsername(username).isPresent()) {
             throw new IllegalArgumentException("Bu kullanıcı adı zaten alınmış!");
@@ -49,15 +54,47 @@ public class UserService {
                 .build();
         User savedUser = userRepository.save(newUser);
 
-        // uyuşmazlığı çözmek adına yeni kayit olan kullanicinin cüzdaninda başlangic bakiyesini
-        // hizalamak ve Cüzdan Bulunamadı hatasinı önlemek için ilk cüzdan satiırı yaratılıyor
+        // Yeni kayit olan kullanicinin cüzdaninda baslangic bakiyesini
+        // senkronize etmek ve Cuzdan Bulunamadi hatasini onlemek icin ilk cuzdan satiri yaratiliyor
         UserWallet wallet = new UserWallet();
         wallet.setUser(savedUser);
-        wallet.setUsdtBalance(startingBalance); // Baslangic nakitini cüzdanin usdt balance alanina da yaziyor
+        wallet.setUsdtBalance(startingBalance); // Baslangic nakitini cuzdanin usdt balance alanina da yaziyoruz.
         wallet.setBtcBalance(BigDecimal.ZERO);
         wallet.setEthBalance(BigDecimal.ZERO);
         userWalletRepository.save(wallet);
 
         return savedUser;
+    }
+
+    // KULLANICI GIRIS METODU (REDIS OTURUM ENTEGRASYONLU)
+    public String loginUser(String username, String password) {
+        //  Kullaniciyi veritabaninda ara
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new IllegalArgumentException("Kullanıcı adı veya şifre hatalı!"));
+
+        //  Sifre eslesmesini kontrol et (Bcrypt matches metodu)
+        if (!passwordEncoder.matches(password, user.getPassword())) {
+            throw new IllegalArgumentException("Kullanıcı adı veya şifre hatalı!");
+        }
+
+        //  Benzersiz oturum tokeni (UUID) üret
+        String token = UUID.randomUUID().toString();
+
+        //  Tokeni Redis'e 30 dakika süreli olarak kaydet
+        //  ( araştırdım bu güüvenlik zafiyeti olmaması için idal sürenin 30 dk olduğuna kanaat getirdim
+        //  bu hem bellek yönetimi hem de güvenlik için gerekli
+        redisTemplate.opsForValue().set(
+                "session:" + token,
+                user.getId().toString(),
+                Duration.ofSeconds(1800)
+        );
+
+        return token;
+    }
+
+    // Yardimci metot Kullanici bilgilerini getirmek icin
+    public User getUserByUsername(String username) {
+        return userRepository.findByUsername(username)
+                .orElseThrow(() -> new IllegalArgumentException("Kullanıcı bulunamadı!"));
     }
 }
