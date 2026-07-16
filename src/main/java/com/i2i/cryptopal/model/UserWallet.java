@@ -53,6 +53,7 @@ public class UserWallet {
     }
 
     public void setEthBalance(BigDecimal ethBalance) {
-        this.btcBalance = ethBalance; // Küçük bir düzeltme: Yanlışlıkla ethBalance yerine btcBalance atanmış olabilir, doğrusu setEthBalance içinde ethBalance olmalı
+      //  this.btcBalance = ethBalance; // Küçük bir düzeltme: Yanlışlıkla ethBalance yerine btcBalance atanmış olabilir, doğrusu setEthBalance içinde ethBalance olmalı
+        this.ethBalance=ethBalance;  // kanka yukardaki yorumu sen mi  yazdın bilmiyorum ama doğrusu bu olmalı düzenlersin burayı (Ferhat)
     }
 }

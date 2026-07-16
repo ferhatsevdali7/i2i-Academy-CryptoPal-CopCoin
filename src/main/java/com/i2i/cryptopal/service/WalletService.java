@@ -74,8 +74,7 @@ public class WalletService {
     public TradeResponse processTradeOrder(TradeRequest request) {
         // 1. Kullanıcı cüzdanını doğrula
         UserWallet wallet = userWalletRepository.findByUserId(request.getUserId())
-                .orElseThrow(() -> new RuntimeException("Cüzdan bulunamadı!"));
-
+                .orElseThrow(() -> new IllegalArgumentException("Cüzdan bulunamadı!"));  //güncellendi (Ferhat)
         // 2. Redis üzerinden anlık fiyatı çek
         String coinKey = request.getCoinSymbol().toUpperCase(); 
         String cachedPrice = redisTemplate.opsForValue().get(coinKey);
@@ -90,7 +89,7 @@ public class WalletService {
         // 3. BUY (Alım) İşlemi İş Mantığı
         if ("BUY".equalsIgnoreCase(request.getAction())) {
             if (wallet.getUsdtBalance().compareTo(totalCost) < 0) {
-                throw new RuntimeException("Yetersiz bakiye! İşlem için yeterli USDT bulunmuyor.");
+                throw new IllegalArgumentException("Yetersiz bakiye! İşlem için yeterli USDT bulunmuyor.");   // güncellendi( Ferjat)
             }
 
             wallet.setUsdtBalance(wallet.getUsdtBalance().subtract(totalCost));
@@ -100,15 +99,15 @@ public class WalletService {
             } else if ("ETH".equalsIgnoreCase(coinKey)) {
                 wallet.setEthBalance(wallet.getEthBalance().add(request.getAmount()));
             } else {
-                throw new RuntimeException("Geçersiz coin sembolü! Sadece BTC veya ETH işlem görebilir.");
+                throw new IllegalArgumentException("Geçersiz coin sembolü! Sadece BTC veya ETH işlem görebilir.");  // güncellendi (Ferhat)
             }
         } 
         // 4. SELL (Satım) İşlemi İş Mantığı
         else if ("SELL".equalsIgnoreCase(request.getAction())) {
             if ("BTC".equalsIgnoreCase(coinKey) && wallet.getBtcBalance().compareTo(request.getAmount()) < 0) {
-                throw new RuntimeException("Yetersiz BTC varlığı!");
+                throw new IllegalArgumentException("Yetersiz BTC varlığı!"); //güncellendi (ferhat)
             } else if ("ETH".equalsIgnoreCase(coinKey) && wallet.getEthBalance().compareTo(request.getAmount()) < 0) {
-                throw new RuntimeException("Yetersiz ETH varlığı!");
+                throw new IllegalArgumentException("Yetersiz ETH varlığı!");  // güncelledim(ferhst)
             }
 
             if ("BTC".equalsIgnoreCase(coinKey)) {
@@ -119,7 +118,7 @@ public class WalletService {
 
             wallet.setUsdtBalance(wallet.getUsdtBalance().add(totalCost));
         } else {
-            throw new RuntimeException("Geçersiz işlem tipi! Sadece BUY veya SELL yapılabilir.");
+            throw new IllegalArgumentException("Geçersiz işlem tipi! Sadece BUY veya SELL yapılabilir.");  // güncelledim(Ferhat)
         }
 
         // Ana kullanıcı profilindeki bakiye alanını senkronize et
