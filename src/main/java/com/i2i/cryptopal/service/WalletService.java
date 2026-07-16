@@ -19,7 +19,7 @@ public class WalletService {
     private final TransactionRepository transactionRepository;
     private final StringRedisTemplate redisTemplate;
 
-    // Temiz Constructor - Kullanılmayan UserRepository tamamen kaldırıldı
+    // Temiz Constructor Entegrasyonu
     public WalletService(UserWalletRepository userWalletRepository, 
                          TransactionRepository transactionRepository,
                          StringRedisTemplate redisTemplate) {
@@ -29,23 +29,37 @@ public class WalletService {
     }
 
     /**
-     * Cüzdan Bilgilerini Getirme Metodu
+     * Kullanıcı ID'sine göre cüzdan bilgilerini veritabanından getirir.
      */
+    @Transactional(readOnly = true)
     public UserWallet getWalletByUserId(Long userId) {
         return userWalletRepository.findByUserId(userId)
-                .orElseThrow(() -> new RuntimeException("Cüzdan bulunamadı!"));
+                .orElseThrow(() -> new RuntimeException("Cüzdan bulunamadı! Kullanıcı ID: " + userId));
     }
 
     /**
-     * Cüzdana USDT (Dolar) Yatırma Metodu
+     * Kullanıcının cüzdanına sanal USDT (Dolar) yatırır.
      */
     @Transactional
     public UserWallet depositUsdt(Long userId, BigDecimal amount) {
-        UserWallet wallet = userWalletRepository.findByUserId(userId)
-                .orElseThrow(() -> new RuntimeException("Cüzdan bulunamadı!"));
+        // 1. Güvenlik Kontrolü
+        if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("Yatırılacak miktar 0'dan büyük olmalıdır!");
+        }
+
+        // 2. Cüzdanı Bulma
+        UserWallet wallet = getWalletByUserId(userId);
         
-        wallet.setUsdtBalance(wallet.getUsdtBalance().add(amount));
+        // 3. Null Kontrolü ve Hesaplama
+        BigDecimal currentBalance = wallet.getUsdtBalance();
+        if (currentBalance == null) {
+            currentBalance = BigDecimal.ZERO;
+        }
         
+        // 4. Yeni Bakiyeyi Ekleme
+        wallet.setUsdtBalance(currentBalance.add(amount));
+        
+        // 5. Profil Bakiyesi ile Senkronizasyon
         if (wallet.getUser() != null) {
             wallet.getUser().setBalance(wallet.getUsdtBalance());
         }
@@ -58,7 +72,6 @@ public class WalletService {
      */
     @Transactional
     public TradeResponse processTradeOrder(TradeRequest request) {
-        
         // 1. Kullanıcı cüzdanını doğrula
         UserWallet wallet = userWalletRepository.findByUserId(request.getUserId())
                 .orElseThrow(() -> new RuntimeException("Cüzdan bulunamadı!"));
@@ -114,7 +127,7 @@ public class WalletService {
             wallet.getUser().setBalance(wallet.getUsdtBalance());
         }
 
-        // 5. Güncellenen verileri kaydetmee
+        // 5. Güncellenen cüzdan verilerini kaydet
         userWalletRepository.save(wallet);
 
         // 6. Değiştirilemez İşlem Dekontunu (Transaction Log) Kaydet
@@ -128,14 +141,14 @@ public class WalletService {
         
         transactionRepository.save(txLog);
 
-        //dekont görüntüleme için TradeResponse nesnesi oluşturuluyor ve geri döndürülüyor
+        // 7. API kılavuzuna uygun saf işlem dekontu nesnesini dön
         return new TradeResponse(
                 "SUCCESS",
                 request.getAction().toUpperCase() + " işlemi anlık fiyat üzerinden başarıyla gerçekleşti.",
                 request.getAction().toUpperCase(),
                 coinKey,
                 request.getAmount(),
-                coinPrice, // burası modeldeki executionPrice alanına oturacak
+                coinPrice, 
                 totalCost
         );
     }
