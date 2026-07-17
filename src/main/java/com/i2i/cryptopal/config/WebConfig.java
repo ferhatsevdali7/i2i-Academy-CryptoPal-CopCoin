@@ -6,6 +6,8 @@ import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
+
+
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
 
@@ -19,8 +21,9 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(securityInterceptor)
-                // Al-sat ve cüzdan işlemlerinin geçtiği tüm yolları zırhladık 
-                .addPathPatterns("/api/trade/**", "/api/wallet/**")
+                // Al-sat, cüzdan ve yapay zeka işlemlerinin geçtiği tüm yolları zırhladık
+                // bu kısma sonradan yapay zeka api ucunu da ekledim ( Ferhat)
+                .addPathPatterns("/api/trade/**", "/api/wallet/**", "/api/ai/**")
                 // Giriş, kayıt ve Swagger sayfalarını bu kontrolden muaf tutuyoruz
                 .excludePathPatterns(
                         "/api/auth/login", 
