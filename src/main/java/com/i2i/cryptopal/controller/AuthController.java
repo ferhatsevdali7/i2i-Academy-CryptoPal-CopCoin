@@ -50,6 +50,7 @@ public class AuthController {
 
         LoginResponse response = new LoginResponse(
                 token,
+                user.getId(), // Giris yapan kullanicinin ID bilgisini ekledim (Ferhat)
                 user.getUsername(),
                 user.getBalance(),
                 "Giriş başarılı. Oturum Redis üzerinde başlatıldı."

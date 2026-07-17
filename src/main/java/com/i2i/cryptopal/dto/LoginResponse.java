@@ -12,6 +12,7 @@ import java.math.BigDecimal;
 public class LoginResponse {
 
     private String token;
+    private Long id; // Giris yapan kullanicinin ID'sini donuyoruz (Ferhat)
     private String username;
     private BigDecimal balance;
     private String message;

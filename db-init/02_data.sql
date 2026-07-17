@@ -77,3 +77,11 @@ ON CONFLICT (id) DO NOTHING;
 --   "coinSymbol": "XRP",
 --   "amount": 10
 -- }
+
+-- ====================================================================
+-- Otomatik Artan ID (Sequence) Senkronizasyonu (Ferhat)
+-- Manuel eklenen verilerin (1, 2, 3) yeni kayıtlarla çakışmasını önlemek için 
+-- tablo sıra sayaçlarını en yüksek değere güncelliyoruz.
+-- ====================================================================
+SELECT setval('users_id_seq', (SELECT MAX(id) FROM users));
+SELECT setval('user_wallets_id_seq', (SELECT MAX(id) FROM user_wallets));
