@@ -20,7 +20,6 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/market")
 @RequiredArgsConstructor  //lombok'un otomatik olarak constructor oluşturmasını sağlar, böylece final değişkenlerimizi Spring Boot otomatik olarak inject eder.
-@CrossOrigin(origins = "*") // Frontend'in port çakışması yaşamadan (CORS) bağlanabilmesi için
 public class PriceController {
 
     private final StringRedisTemplate redisTemplate;

@@ -71,12 +71,11 @@ public class AIService {
             ));
         }
 
-        // gemini için zenginleştirilmiş sistem promptu oluşturuyoruzdz
         String systemInstruction = "Sen CopCoin platformunda kullanıcılara rehberlik eden profesyonel bir yapay zeka finansal danışmanısın. "
                 + "Kullanıcıya güncel portföy durumuna göre özel analizler sunacaksın. "
                 + "Yalnızca kripto para, borsa, yatırım ve finansal durumları hakkında konuşacaksın. "
                 + "Eğer kullanıcı bu konular dışındaki (örneğin hava durumu, yemek tarifi, genel kültür) sorular sorarsa, nazikçe sadece finans konularında yardımcı olabileceğini söyleyeceksin. "
-                + "Cevaplarını Türkçe ve Markdown formatında, kısa ve öz olarak ver.\n\n";
+                + "Cevaplarını Türkçe ve düz metin (Plain Text) formatında, kısa ve öz olarak ver. Yıldız (**) veya kare (###) gibi hiçbir markdown biçimlendirme işareti KULLANMA. Başlıkları düz satır başı olarak yaz ve satır aralarına boşluklar (yeni satır) bırakarak temiz paragraflar oluştur.\n\n";
 
         String context = String.format("### Kullanıcı Portföy Durumu:\n"
                 + "- Kullanıcı Adı: %s\n"

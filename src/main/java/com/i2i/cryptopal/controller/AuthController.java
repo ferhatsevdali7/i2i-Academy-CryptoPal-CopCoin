@@ -17,7 +17,6 @@ import java.util.Map;
 @RestController  // rest apı denetleyicisi,  metotlardan dönen veriler otomatik json formatında olmalı demek
 @RequestMapping("/api/auth")  // ön ek olıuşturma
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*") // Frontend'in CORS engeline takılmasını engellemek iiçin
 public class AuthController {
 
     private final UserService userService;

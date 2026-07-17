@@ -134,7 +134,7 @@ function AuthScreen({ onAuthed }) {
       if (isLogin) {
         setMessage({ text: data.message || "Giriş başarılı!", type: "success" });
         setTimeout(() => {
-          onAuthed({ token: data.token, username: data.username, balance: data.balance, userId: null });
+          onAuthed({ token: data.token, username: data.username, balance: data.balance, userId: data.id });
         }, 400);
       } else {
         setMessage({ text: data.message || "Kayıt başarılı! Şimdi giriş yapabilirsin.", type: "success" });
@@ -573,6 +573,7 @@ function Dashboard({ session, onLogout }) {
                 className="rounded-2xl px-3.5 py-3 text-[13.8px]"
                 style={{
                   lineHeight: 1.5,
+                  whiteSpace: "pre-wrap",
                   maxWidth: entry.role === "question" ? "85%" : "90%",
                   alignSelf: entry.role === "question" ? "flex-end" : "flex-start",
                   background: entry.role === "question" ? COLORS.inputBg : "#151107",

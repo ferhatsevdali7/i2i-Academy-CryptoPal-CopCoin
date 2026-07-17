@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/ai")  // yapay zeka ile ilgili tüm istekler bu ön eke sahip olmalı
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*")  // frontendin takılmasını engeller
 public class AIController {
 
     private final AIService aiService;
