@@ -1,4 +1,4 @@
-ine package com.i2i.cryptopal.service;
+package com.i2i.cryptopal.service;
 
 import com.i2i.cryptopal.model.Transaction;
 import com.i2i.cryptopal.model.User;
