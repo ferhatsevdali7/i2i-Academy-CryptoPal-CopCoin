@@ -11,6 +11,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import jakarta.servlet.http.HttpServletRequest;
+import java.util.Map;
 
 @RestController  // rest apı denetleyicisi,  metotlardan dönen veriler otomatik json formatında olmalı demek
 @RequestMapping("/api/auth")  // ön ek olıuşturma
@@ -55,4 +57,25 @@ public class AuthController {
 
         return ResponseEntity.ok(response);
     }
+
+    // Header dan Authorization bilgisini çekiyoruz
+    //Eğer token gönderilmişse ve formatı doğruysa
+    //Servise gidip bu tokeni Redisten siliyoruz
+
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout(HttpServletRequest request) {
+
+        String authHeader = request.getHeader("Authorization");
+
+
+        if (authHeader != null && authHeader.toLowerCase().startsWith("bearer ")) {
+
+            String token = authHeader.substring(7).trim();
+
+            userService.logoutUser(token);
+        }
+
+        return ResponseEntity.ok(Map.of("message", "Çıkış başarılı. Oturum sonlandırıldı."));
+    }
+
 }

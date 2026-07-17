@@ -97,4 +97,10 @@ public class UserService {
         return userRepository.findByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException("Kullanıcı bulunamadı!"));
     }
+
+    // KULLANICI CIKIS METODU (redis otorumunu siler )
+    public void logoutUser(String token) {
+        redisTemplate.delete("session:" + token);
+    }
+
 }
