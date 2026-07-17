@@ -38,7 +38,7 @@ public class SecurityInterceptor implements HandlerInterceptor {
         String token = authHeader.substring(7).trim();
 
         //3.Redis Kontrolü: Bu token'a karşılık gelen aktif bir kullanıcı ID'si var mı?
-        String userIdStr = redisTemplate.opsForValue().get(token);
+        String userIdStr = redisTemplate.opsForValue().get("session:" + token);  // ön ek uyşmazlığını çözdüm (Ferhat)
 
         if (userIdStr == null) {
             return sendUnAuthorizedResponse(response, "Oturum süreniz dolmuş veya geçersiz token! Lütfen tekrar giriş yapın.");
