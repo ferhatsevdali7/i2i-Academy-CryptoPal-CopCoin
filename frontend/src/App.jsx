@@ -1,12 +1,13 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 
-// Backend'in çalıştığı adres (local Spring Boot varsayılan portu)
 const API_BASE = "http://localhost:8080";
 
 const COLORS = {
   bg: "#000000",
+  sidebar: "#0a0a0a",
   card: "#0a0a0a",
   cardBorder: "#1c1c1c",
+  cardBorderHover: "#2c2c2c",
   inputBg: "#121212",
   inputBorder: "#232323",
   textMain: "#ffffff",
@@ -21,11 +22,29 @@ const COLORS = {
   successText: "#4ade80",
 };
 
+const pageBg = {
+  background:
+    "radial-gradient(circle at 15% 0%, rgba(253,199,0,0.05), transparent 40%), radial-gradient(circle at 85% 100%, rgba(253,199,0,0.04), transparent 45%), #000000",
+};
+
+const COINS = [
+  { symbol: "BTC", name: "Bitcoin", badgeBg: "#f7931a" },
+  { symbol: "ETH", name: "Ethereum", badgeBg: "#8a92b2" },
+];
+
+// ---------------- SHARED UI ----------------
+
 function IconBadge({ size = 56, radius = 16 }) {
   return (
     <div
-      className="flex items-center justify-center mx-auto"
-      style={{ width: size, height: size, background: COLORS.yellow, borderRadius: radius }}
+      className="flex items-center justify-center mx-auto shrink-0"
+      style={{
+        width: size,
+        height: size,
+        background: `linear-gradient(155deg, ${COLORS.yellow}, #e0ac00)`,
+        borderRadius: radius,
+        boxShadow: `0 6px 20px -6px rgba(253,199,0,0.45)`,
+      }}
     >
       <svg viewBox="0 0 24 24" fill="none" style={{ width: size * 0.46, height: size * 0.46 }}>
         <path d="M3 17L9 11L13 15L21 7" stroke="#141414" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
@@ -64,10 +83,10 @@ function MessageBox({ text, type }) {
 function Field({ label, ...props }) {
   return (
     <div className="mb-4">
-      <label className="block text-xs mb-2" style={{ color: "#b3b3b3" }}>{label}</label>
+      <label className="block text-xs mb-2 font-medium" style={{ color: "#a3a3a3" }}>{label}</label>
       <input
         {...props}
-        className="w-full rounded-xl px-4 py-3 text-sm outline-none"
+        className="w-full rounded-xl px-4 py-3 text-sm outline-none transition-colors"
         style={{ background: COLORS.inputBg, border: `1px solid ${COLORS.inputBorder}`, color: COLORS.textMain }}
         onFocus={(e) => { e.target.style.borderColor = COLORS.yellow; e.target.style.background = "#161616"; }}
         onBlur={(e) => { e.target.style.borderColor = COLORS.inputBorder; e.target.style.background = COLORS.inputBg; }}
@@ -77,15 +96,18 @@ function Field({ label, ...props }) {
 }
 
 function PrimaryButton({ children, loading, loadingText, ghost, ...props }) {
+  const [hover, setHover] = useState(false);
   return (
     <button
       {...props}
       disabled={loading || props.disabled}
-      className="w-full rounded-2xl py-3.5 font-bold text-sm flex items-center justify-center gap-2 transition"
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+      className="w-full rounded-2xl py-3.5 font-bold text-sm flex items-center justify-center gap-2 transition-all"
       style={{
-        background: ghost ? COLORS.inputBg : COLORS.yellow,
+        background: ghost ? COLORS.inputBg : hover && !loading ? COLORS.yellowHover : COLORS.yellow,
         color: ghost ? COLORS.textMain : "#141414",
-        border: ghost ? `1px solid ${COLORS.inputBorder}` : "none",
+        border: ghost ? `1px solid ${hover ? COLORS.cardBorderHover : COLORS.inputBorder}` : "none",
         opacity: loading || props.disabled ? 0.6 : 1,
         cursor: loading || props.disabled ? "not-allowed" : "pointer",
       }}
@@ -95,10 +117,54 @@ function PrimaryButton({ children, loading, loadingText, ghost, ...props }) {
   );
 }
 
+function fmtUsd(n) {
+  const num = parseFloat(n);
+  if (isNaN(num)) return "-";
+  return "$" + num.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function AssetBadge({ label, bg, size = 28 }) {
+  return (
+    <span
+      className="flex items-center justify-center rounded-lg font-bold shrink-0"
+      style={{ width: size, height: size, background: bg, color: "#141414", fontSize: size * 0.4 }}
+    >
+      {label}
+    </span>
+  );
+}
+
+function Card({ title, className = "", children, right = null }) {
+  const [hover, setHover] = useState(false);
+  return (
+    <div
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+      className={`rounded-[20px] p-6 transition-all ${className}`}
+      style={{
+        background: COLORS.card,
+        border: `1px solid ${hover ? COLORS.cardBorderHover : COLORS.cardBorder}`,
+        boxShadow: hover ? "0 20px 40px -24px rgba(0,0,0,0.7)" : "none",
+      }}
+    >
+      {title && (
+        <div className="flex items-center justify-between mb-4.5">
+          <h2 className="flex items-center gap-2 text-sm font-medium" style={{ color: COLORS.textMain }}>
+            <span className="inline-block rounded-full" style={{ width: 7, height: 7, background: COLORS.yellow, boxShadow: `0 0 8px ${COLORS.yellow}` }} />
+            {title}
+          </h2>
+          {right}
+        </div>
+      )}
+      {children}
+    </div>
+  );
+}
+
 // ---------------- AUTH SCREEN ----------------
 
 function AuthScreen({ onAuthed }) {
-  const [mode, setMode] = useState("login"); // 'login' | 'register'
+  const [mode, setMode] = useState("login");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -138,7 +204,6 @@ function AuthScreen({ onAuthed }) {
         }, 400);
       } else {
         setMessage({ text: data.message || "Kayıt başarılı! Şimdi giriş yapabilirsin.", type: "success" });
-        // RegisterResponse id döndürüyor, bunu login sonrası dashboard'a taşıyoruz
         setTimeout(() => {
           setMode("login");
           setMessage({ text: "", type: "" });
@@ -152,56 +217,30 @@ function AuthScreen({ onAuthed }) {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-6" style={{ background: COLORS.bg }}>
+    <div className="min-h-screen flex items-center justify-center p-6" style={pageBg}>
       <div
         className="w-full rounded-3xl px-8 pt-10 pb-8"
-        style={{ maxWidth: 380, background: COLORS.card, border: `1px solid ${COLORS.cardBorder}` }}
+        style={{ maxWidth: 380, background: COLORS.card, border: `1px solid ${COLORS.cardBorder}`, boxShadow: "0 40px 80px -30px rgba(0,0,0,0.9)" }}
       >
         <div className="mb-5"><IconBadge /></div>
 
         {isLogin ? (
           <>
-            <h1 className="text-center font-bold text-2xl mb-2" style={{ color: COLORS.textMain, letterSpacing: "-0.02em" }}>
-              Hoş Geldiniz
-            </h1>
-            <p className="text-center text-sm mb-7 px-1.5" style={{ color: COLORS.textMuted, lineHeight: 1.5 }}>
-              İşlemlerinize devam etmek için lütfen giriş yapınız
-            </p>
+            <h1 className="text-center font-bold text-2xl mb-2" style={{ color: COLORS.textMain, letterSpacing: "-0.02em" }}>Hoş Geldiniz</h1>
+            <p className="text-center text-sm mb-7 px-1.5" style={{ color: COLORS.textMuted, lineHeight: 1.5 }}>İşlemlerinize devam etmek için lütfen giriş yapınız</p>
           </>
         ) : (
           <>
-            <h1 className="text-center font-bold text-2xl mb-2" style={{ color: COLORS.textMain, letterSpacing: "-0.02em" }}>
-              Aramıza Katıl
-            </h1>
-            <p className="text-center text-sm mb-7 px-1.5" style={{ color: COLORS.textMuted, lineHeight: 1.5 }}>
-              Hesabını oluştur, sana özel başlangıç bakiyesiyle işlem yapmaya başla
-            </p>
+            <h1 className="text-center font-bold text-2xl mb-2" style={{ color: COLORS.textMain, letterSpacing: "-0.02em" }}>Aramıza Katıl</h1>
+            <p className="text-center text-sm mb-7 px-1.5" style={{ color: COLORS.textMuted, lineHeight: 1.5 }}>Hesabını oluştur, sana özel başlangıç bakiyesiyle işlem yapmaya başla</p>
           </>
         )}
 
         <form onSubmit={submit}>
-          <Field
-            label="Kullanıcı Adı"
-            type="text"
-            placeholder="Kullanıcı adınız"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            required
-          />
-          <Field
-            label="Şifre"
-            type="password"
-            placeholder="••••••••••••••••"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
+          <Field label="Kullanıcı Adı" type="text" placeholder="Kullanıcı adınız" value={username} onChange={(e) => setUsername(e.target.value)} required />
+          <Field label="Şifre" type="password" placeholder="••••••••••••••••" value={password} onChange={(e) => setPassword(e.target.value)} required />
 
-          <PrimaryButton
-            type="submit"
-            loading={loading}
-            loadingText={isLogin ? "Giriş yapılıyor..." : "Kayıt oluşturuluyor..."}
-          >
+          <PrimaryButton type="submit" loading={loading} loadingText={isLogin ? "Giriş yapılıyor..." : "Kayıt oluşturuluyor..."}>
             <span>{isLogin ? "Giriş Yap" : "Kayıt Ol"}</span>
             <svg viewBox="0 0 24 24" fill="none" style={{ width: 16, height: 16 }}>
               <path d="M5 12H19M19 12L13 6M19 12L13 18" stroke="#141414" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
@@ -213,17 +252,9 @@ function AuthScreen({ onAuthed }) {
 
         <p className="text-center text-sm mt-5" style={{ color: COLORS.textMuted }}>
           {isLogin ? (
-            <>Hesabın yok mu?{" "}
-              <a onClick={() => switchMode("register")} className="font-bold cursor-pointer" style={{ color: COLORS.yellow }}>
-                Kayıt Ol
-              </a>
-            </>
+            <>Hesabın yok mu?{" "}<a onClick={() => switchMode("register")} className="font-bold cursor-pointer hover:underline" style={{ color: COLORS.yellow }}>Kayıt Ol</a></>
           ) : (
-            <>Zaten hesabın var mı?{" "}
-              <a onClick={() => switchMode("login")} className="font-bold cursor-pointer" style={{ color: COLORS.yellow }}>
-                Giriş Yap
-              </a>
-            </>
+            <>Zaten hesabın var mı?{" "}<a onClick={() => switchMode("login")} className="font-bold cursor-pointer hover:underline" style={{ color: COLORS.yellow }}>Giriş Yap</a></>
           )}
         </p>
       </div>
@@ -231,122 +262,266 @@ function AuthScreen({ onAuthed }) {
   );
 }
 
-// ---------------- DASHBOARD ----------------
+// ---------------- SIDEBAR ----------------
 
-function fmtUsd(n) {
-  const num = parseFloat(n);
-  if (isNaN(num)) return "-";
-  return "$" + num.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+function NavIcon({ path, size = 18 }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" style={{ width: size, height: size }}>
+      <path d={path} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
 }
 
-function Card({ title, className = "", children }) {
+const NAV_ITEMS = [
+  { key: "home", label: "Ana Sayfa", icon: "M3 11L12 4L21 11M5 10V20H19V10" },
+  { key: "portfolio", label: "Portföy", icon: "M4 4H20V20H4V4ZM4 10H20M10 10V20" },
+  { key: "history", label: "İşlem Geçmişi", icon: "M12 8V12L15 15M21 12A9 9 0 1 1 12 3" },
+];
+
+function Sidebar({ active, onNavigate, username, onLogout }) {
   return (
-    <div className={`rounded-[20px] p-6 ${className}`} style={{ background: COLORS.card, border: `1px solid ${COLORS.cardBorder}` }}>
-      <h2 className="flex items-center gap-2 text-sm mb-4.5" style={{ color: COLORS.textMain }}>
-        <span className="inline-block rounded-full" style={{ width: 7, height: 7, background: COLORS.yellow }} />
-        {title}
-      </h2>
-      {children}
+    <div
+      className="hidden md:flex flex-col shrink-0"
+      style={{ width: 240, background: COLORS.sidebar, borderRight: `1px solid ${COLORS.cardBorder}`, minHeight: "100vh" }}
+    >
+      <div className="flex items-center gap-3.5 px-6 py-7">
+        <IconBadge size={48} radius={14} />
+        <span className="font-bold text-xl tracking-tight leading-none" style={{ color: COLORS.textMain }}>CopCoin</span>
+      </div>
+
+      <nav className="flex-1 px-3 mt-2">
+        {NAV_ITEMS.map((item) => {
+          const isActive = active === item.key;
+          return (
+            <button
+              key={item.key}
+              onClick={() => onNavigate(item.key)}
+              className="w-full flex items-center gap-3 px-3.5 py-3 rounded-xl mb-1 text-sm font-medium transition-all"
+              style={{
+                background: isActive ? "rgba(253,199,0,0.1)" : "transparent",
+                color: isActive ? COLORS.yellow : COLORS.textMuted,
+              }}
+            >
+              <NavIcon path={item.icon} />
+              {item.label}
+            </button>
+          );
+        })}
+      </nav>
+
+      <div className="px-4 pb-5 pt-3" style={{ borderTop: `1px solid ${COLORS.cardBorder}` }}>
+        <div className="flex items-center gap-2.5 px-2 mb-3">
+          <span
+            className="flex items-center justify-center rounded-full font-bold text-xs shrink-0"
+            style={{ width: 32, height: 32, background: COLORS.yellow, color: "#141414" }}
+          >
+            {username?.[0]?.toUpperCase() || "?"}
+          </span>
+          <span className="text-[13.5px] font-semibold truncate" style={{ color: COLORS.textMain }}>{username}</span>
+        </div>
+        <button
+          onClick={onLogout}
+          className="w-full rounded-xl px-3.5 py-2.5 text-[13px] font-medium transition-colors"
+          style={{ background: COLORS.inputBg, border: `1px solid ${COLORS.inputBorder}`, color: COLORS.textMain }}
+        >
+          Çıkış Yap
+        </button>
+      </div>
     </div>
   );
 }
 
-function AssetBadge({ label, bg }) {
+function MobileNav({ active, onNavigate }) {
   return (
-    <span
-      className="flex items-center justify-center rounded-lg font-bold text-[11px]"
-      style={{ width: 28, height: 28, background: bg, color: "#141414" }}
+    <div
+      className="flex md:hidden overflow-x-auto gap-2 px-4 py-3 mb-2"
+      style={{ borderBottom: `1px solid ${COLORS.cardBorder}` }}
     >
-      {label}
-    </span>
+      {NAV_ITEMS.map((item) => {
+        const isActive = active === item.key;
+        return (
+          <button
+            key={item.key}
+            onClick={() => onNavigate(item.key)}
+            className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium whitespace-nowrap"
+            style={{ background: isActive ? "rgba(253,199,0,0.1)" : COLORS.inputBg, color: isActive ? COLORS.yellow : COLORS.textMuted }}
+          >
+            <NavIcon path={item.icon} size={14} />
+            {item.label}
+          </button>
+        );
+      })}
+    </div>
   );
 }
 
-function Dashboard({ session, onLogout }) {
-  const { token, username } = session;
-  const [userId, setUserId] = useState(session.userId || "");
-  const [idInput, setIdInput] = useState("");
+// ---------------- MINI SPARKLINE (for home list rows) ----------------
 
-  const [prices, setPrices] = useState({ BTC: 0, ETH: 0 });
-  const [lastPrices, setLastPrices] = useState({ BTC: null, ETH: null });
-  const [priceError, setPriceError] = useState("");
+function MiniSparkline({ points, color }) {
+  if (!points || points.length < 2) {
+    return <div style={{ width: 90, height: 32 }} />;
+  }
+  const prices = points.map((p) => parseFloat(p.price));
+  const min = Math.min(...prices);
+  const max = Math.max(...prices);
+  const range = max - min || 1;
+  const w = 90, h = 32;
+  const step = w / (prices.length - 1);
+  const path = prices
+    .map((p, i) => `${i === 0 ? "M" : "L"} ${(i * step).toFixed(1)} ${(h - ((p - min) / range) * h).toFixed(1)}`)
+    .join(" ");
+  return (
+    <svg viewBox={`0 0 ${w} ${h}`} style={{ width: w, height: h }}>
+      <path d={path} fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
 
-  const [wallet, setWallet] = useState(null);
-  const [walletError, setWalletError] = useState("");
+// ---------------- HOME VIEW ----------------
 
+function HomeView({ prices, lastPrices, history, onInspect }) {
+  function priceChange(sym) {
+    const last = lastPrices[sym];
+    const current = prices[sym];
+    if (!last || !current) return null;
+    const diff = current - last;
+    if (diff === 0) return null;
+    const pct = ((diff / last) * 100).toFixed(2);
+    return { up: diff > 0, text: (diff > 0 ? "▲ +" : "▼ ") + pct + "%" };
+  }
+
+  return (
+    <div className="max-w-[1000px]">
+      <h1 className="text-2xl font-bold mb-1" style={{ color: COLORS.textMain, letterSpacing: "-0.02em" }}>Piyasa</h1>
+      <p className="text-sm mb-6" style={{ color: COLORS.textMuted }}>Kriptoların canlı fiyatlarını takip et, incele ve işlem yap.</p>
+
+      <Card>
+        {COINS.map((coin, i) => {
+          const change = priceChange(coin.symbol);
+          return (
+            <div
+              key={coin.symbol}
+              className="flex items-center justify-between py-4 gap-4 flex-wrap"
+              style={{ borderBottom: i < COINS.length - 1 ? `1px solid ${COLORS.cardBorder}` : "none" }}
+            >
+              <div className="flex items-center gap-3" style={{ minWidth: 160 }}>
+                <AssetBadge label={coin.symbol[0]} bg={coin.badgeBg} size={36} />
+                <div>
+                  <div className="font-bold text-sm" style={{ color: COLORS.textMain }}>{coin.name}</div>
+                  <div className="text-xs" style={{ color: COLORS.textMuted }}>{coin.symbol}/USDT</div>
+                </div>
+              </div>
+
+              <MiniSparkline points={history[coin.symbol]} color={change ? (change.up ? COLORS.successText : COLORS.errorText) : COLORS.yellow} />
+
+              <div className="text-right" style={{ minWidth: 110 }}>
+                <div className="font-bold text-sm" style={{ color: COLORS.textMain }}>{fmtUsd(prices[coin.symbol])}</div>
+                {change && (
+                  <div className="text-xs" style={{ color: change.up ? COLORS.successText : COLORS.errorText }}>{change.text}</div>
+                )}
+              </div>
+
+              <button
+                onClick={() => onInspect(coin.symbol)}
+                className="rounded-xl px-4 py-2.5 text-[13px] font-bold transition-colors shrink-0"
+                style={{ background: COLORS.inputBg, border: `1px solid ${COLORS.inputBorder}`, color: COLORS.textMain }}
+                onMouseEnter={(e) => { e.currentTarget.style.borderColor = COLORS.yellow; e.currentTarget.style.color = COLORS.yellow; }}
+                onMouseLeave={(e) => { e.currentTarget.style.borderColor = COLORS.inputBorder; e.currentTarget.style.color = COLORS.textMain; }}
+              >
+                İncele
+              </button>
+            </div>
+          );
+        })}
+      </Card>
+    </div>
+  );
+}
+
+// ---------------- COIN DETAIL VIEW (chart + buy/sell) ----------------
+
+function LineChart({ points }) {
+  if (!points || points.length < 2) {
+    return (
+      <div className="flex items-center justify-center" style={{ height: 220, color: COLORS.textMuted, fontSize: 13 }}>
+        Grafik verisi henüz oluşuyor...
+      </div>
+    );
+  }
+  const prices = points.map((p) => parseFloat(p.price));
+  const min = Math.min(...prices);
+  const max = Math.max(...prices);
+  const range = max - min || 1;
+  const w = 700, h = 220, pad = 10;
+  const step = (w - pad * 2) / (prices.length - 1);
+  const coords = prices.map((p, i) => [pad + i * step, h - pad - ((p - min) / range) * (h - pad * 2)]);
+  const linePath = coords.map(([x, y], i) => `${i === 0 ? "M" : "L"} ${x.toFixed(1)} ${y.toFixed(1)}`).join(" ");
+  const areaPath = `${linePath} L ${coords[coords.length - 1][0].toFixed(1)} ${h} L ${coords[0][0].toFixed(1)} ${h} Z`;
+  const up = prices[prices.length - 1] >= prices[0];
+  const lineColor = up ? COLORS.successText : COLORS.errorText;
+
+  return (
+    <svg viewBox={`0 0 ${w} ${h}`} style={{ width: "100%", height: 220 }} preserveAspectRatio="none">
+      <defs>
+        <linearGradient id="chartFade" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={lineColor} stopOpacity="0.25" />
+          <stop offset="100%" stopColor={lineColor} stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      <path d={areaPath} fill="url(#chartFade)" stroke="none" />
+      <path d={linePath} fill="none" stroke={lineColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function CoinDetailView({ coin, price, lastPrice, history, historyLoading, userId, token, onBack, onTraded }) {
   const [action, setAction] = useState("BUY");
-  const [coin, setCoin] = useState("BTC");
-  const [amount, setAmount] = useState("");
+  const [usdValue, setUsdValue] = useState("");
+  const [coinValue, setCoinValue] = useState("");
   const [tradeLoading, setTradeLoading] = useState(false);
   const [tradeMessage, setTradeMessage] = useState({ text: "", type: "" });
 
-  const [aiLog, setAiLog] = useState([]); // {role:'question'|'answer', text}
-  const [aiQuestion, setAiQuestion] = useState("");
-  const [aiLoading, setAiLoading] = useState(false);
-  const [aiMessage, setAiMessage] = useState({ text: "", type: "" });
+  const coinInfo = COINS.find((c) => c.symbol === coin);
 
-  const authHeaders = useCallback((json) => {
-    const h = { Authorization: `Bearer ${token}` };
-    if (json) h["Content-Type"] = "application/json";
-    return h;
-  }, [token]);
+  const change = (() => {
+    if (!lastPrice || !price) return null;
+    const diff = price - lastPrice;
+    if (diff === 0) return null;
+    const pct = ((diff / lastPrice) * 100).toFixed(2);
+    return { up: diff > 0, text: (diff > 0 ? "▲ +" : "▼ ") + pct + "%" };
+  })();
 
-  const loadPrices = useCallback(async () => {
-    try {
-      const res = await fetch(`${API_BASE}/api/market/prices`);
-      const data = await res.json();
-      const btc = parseFloat(data.BTC);
-      const eth = parseFloat(data.ETH);
-      setLastPrices({ BTC: prices.BTC || null, ETH: prices.ETH || null });
-      setPrices({ BTC: btc, ETH: eth });
-      setPriceError("");
-    } catch (err) {
-      setPriceError("Fiyatlara ulaşılamadı. Backend çalışıyor mu?");
+  const updateFromUsd = (val) => {
+    setUsdValue(val);
+    const num = parseFloat(val);
+    if (!isNaN(num) && price > 0) {
+      setCoinValue((num / price).toFixed(8));
+    } else {
+      setCoinValue("");
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  };
 
-  const loadWallet = useCallback(async (id) => {
-    if (!id) return;
-    setWalletError("");
-    try {
-      const res = await fetch(`${API_BASE}/api/wallet/${id}`, { headers: authHeaders(false) });
-      const data = await res.json();
-      if (!res.ok) {
-        setWalletError(data.error || data.message || "Cüzdan bilgisi alınamadı.");
-        return;
-      }
-      setWallet(data);
-    } catch (err) {
-      setWalletError("Sunucuya ulaşılamadı. Backend çalışıyor mu?");
+  const updateFromCoin = (val) => {
+    setCoinValue(val);
+    const num = parseFloat(val);
+    if (!isNaN(num) && price > 0) {
+      setUsdValue((num * price).toFixed(2));
+    } else {
+      setUsdValue("");
     }
-  }, [authHeaders]);
-
-  useEffect(() => {
-    loadPrices();
-    const interval = setInterval(loadPrices, 15000);
-    return () => clearInterval(interval);
-  }, [loadPrices]);
-
-  useEffect(() => {
-    if (userId) loadWallet(userId);
-  }, [userId, loadWallet]);
-
-  const saveUserId = () => {
-    if (!idInput.trim()) return;
-    setUserId(idInput.trim());
   };
 
   const submitTrade = async (e) => {
     e.preventDefault();
-    if (!userId) return;
+    const amount = parseFloat(coinValue);
+    if (!amount || amount <= 0) return;
     setTradeMessage({ text: "", type: "" });
     setTradeLoading(true);
     try {
       const res = await fetch(`${API_BASE}/api/trade/order`, {
         method: "POST",
-        headers: authHeaders(true),
-        body: JSON.stringify({ userId: Number(userId), coinSymbol: coin, action, amount: Number(amount) }),
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ userId: Number(userId), coinSymbol: coin, action, amount }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -354,13 +529,246 @@ function Dashboard({ session, onLogout }) {
         return;
       }
       setTradeMessage({ text: data.message || "İşlem başarıyla gerçekleşti.", type: "success" });
-      setAmount("");
-      loadWallet(userId);
+      setUsdValue("");
+      setCoinValue("");
+      onTraded({
+        action,
+        coin,
+        amount,
+        price: data.executionPrice || price,
+        total: data.totalCost || amount * price,
+        timestamp: data.timestamp || new Date().toISOString(),
+      });
     } catch (err) {
       setTradeMessage({ text: "Sunucuya ulaşılamadı. Backend çalışıyor mu?", type: "error" });
     } finally {
       setTradeLoading(false);
     }
+  };
+
+  return (
+    <div className="max-w-[1000px]">
+      <button
+        onClick={onBack}
+        className="flex items-center gap-1.5 text-sm font-medium mb-5"
+        style={{ color: COLORS.textMuted }}
+      >
+        <svg viewBox="0 0 24 24" fill="none" style={{ width: 16, height: 16 }}>
+          <path d="M15 18L9 12L15 6" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+        Piyasaya dön
+      </button>
+
+      <div className="flex items-center gap-3 mb-6 flex-wrap">
+        <AssetBadge label={coin[0]} bg={coinInfo?.badgeBg} size={44} />
+        <div>
+          <div className="font-bold text-xl" style={{ color: COLORS.textMain }}>{coinInfo?.name} <span style={{ color: COLORS.textMuted, fontWeight: 500 }}>· {coin}/USDT</span></div>
+          <div className="flex items-center gap-2">
+            <span className="font-bold text-lg" style={{ color: COLORS.textMain }}>{fmtUsd(price)}</span>
+            {change && <span className="text-sm" style={{ color: change.up ? COLORS.successText : COLORS.errorText }}>{change.text}</span>}
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-12 gap-5">
+        <Card title="Fiyat Grafiği" className="col-span-12 lg:col-span-7">
+          {historyLoading ? (
+            <div className="flex items-center justify-center gap-2" style={{ height: 220, color: COLORS.textMuted, fontSize: 13 }}>
+              <Spinner /> Yükleniyor...
+            </div>
+          ) : (
+            <LineChart points={history} />
+          )}
+        </Card>
+
+        <Card title={`${coin} Al / Sat`} className="col-span-12 lg:col-span-5">
+          <form onSubmit={submitTrade}>
+            <div className="flex gap-2 mb-4">
+              {["BUY", "SELL"].map((a) => {
+                const isActive = action === a;
+                const isBuy = a === "BUY";
+                return (
+                  <button
+                    key={a}
+                    type="button"
+                    onClick={() => setAction(a)}
+                    className="flex-1 rounded-xl py-2.5 font-bold text-[13.5px] transition-all"
+                    style={{
+                      background: isActive ? (isBuy ? COLORS.successBg : COLORS.errorBg) : COLORS.inputBg,
+                      border: `1px solid ${isActive ? (isBuy ? COLORS.successBorder : COLORS.errorBorder) : COLORS.inputBorder}`,
+                      color: isActive ? (isBuy ? COLORS.successText : COLORS.errorText) : COLORS.textMuted,
+                    }}
+                  >
+                    {isBuy ? "AL" : "SAT"}
+                  </button>
+                );
+              })}
+            </div>
+
+            <div className="mb-3">
+              <label className="block text-xs mb-2 font-medium" style={{ color: "#a3a3a3" }}>Dolar (USD)</label>
+              <div className="relative">
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  placeholder="0.00"
+                  value={usdValue}
+                  onChange={(e) => updateFromUsd(e.target.value)}
+                  className="w-full rounded-xl pl-4 pr-14 py-3 text-sm outline-none"
+                  style={{ background: COLORS.inputBg, border: `1px solid ${COLORS.inputBorder}`, color: COLORS.textMain }}
+                />
+                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold" style={{ color: COLORS.textMuted }}>USD</span>
+              </div>
+            </div>
+
+            <div className="flex justify-center my-1">
+              <span
+                className="flex items-center justify-center rounded-full"
+                style={{ width: 28, height: 28, background: COLORS.inputBg, border: `1px solid ${COLORS.inputBorder}` }}
+              >
+                <svg viewBox="0 0 24 24" fill="none" style={{ width: 14, height: 14 }}>
+                  <path d="M7 10L12 15L17 10" stroke={COLORS.yellow} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </span>
+            </div>
+
+            <div className="mb-4">
+              <label className="block text-xs mb-2 font-medium" style={{ color: "#a3a3a3" }}>Miktar ({coin})</label>
+              <div className="relative">
+                <input
+                  type="number"
+                  step="0.00000001"
+                  min="0"
+                  placeholder="0.00000000"
+                  value={coinValue}
+                  onChange={(e) => updateFromCoin(e.target.value)}
+                  className="w-full rounded-xl pl-4 pr-14 py-3 text-sm outline-none"
+                  style={{ background: COLORS.inputBg, border: `1px solid ${COLORS.inputBorder}`, color: COLORS.textMain }}
+                />
+                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold" style={{ color: COLORS.textMuted }}>{coin}</span>
+              </div>
+            </div>
+
+            <PrimaryButton type="submit" loading={tradeLoading} loadingText="Gönderiliyor...">
+              {action === "BUY" ? "Satın Al" : "Sat"}
+            </PrimaryButton>
+          </form>
+          <MessageBox text={tradeMessage.text} type={tradeMessage.type} />
+        </Card>
+      </div>
+    </div>
+  );
+}
+
+// ---------------- PORTFOLIO VIEW ----------------
+
+function PortfolioView({ wallet, walletError, prices }) {
+  const usdt = wallet ? parseFloat(wallet.usdtBalance || 0) : 0;
+  const btcQty = wallet ? parseFloat(wallet.btcBalance || 0) : 0;
+  const ethQty = wallet ? parseFloat(wallet.ethBalance || 0) : 0;
+  const totalValue = usdt + btcQty * (prices.BTC || 0) + ethQty * (prices.ETH || 0);
+
+  return (
+    <div className="max-w-[700px]">
+      <h1 className="text-2xl font-bold mb-1" style={{ color: COLORS.textMain, letterSpacing: "-0.02em" }}>Portföyüm</h1>
+      <p className="text-sm mb-6" style={{ color: COLORS.textMuted }}>Nakit bakiyen ve sahip olduğun varlıklar.</p>
+
+      <Card>
+        <div className="text-3xl font-bold mb-1" style={{ letterSpacing: "-0.02em", color: COLORS.textMain }}>{fmtUsd(totalValue)}</div>
+        <div className="text-[13px] mb-5" style={{ color: COLORS.textMuted }}>Toplam Portföy Değeri (USDT + BTC + ETH)</div>
+
+        {[
+          { label: "USDT (Nakit)", badge: <AssetBadge label="$" bg={COLORS.yellow} />, qty: fmtUsd(usdt), val: null },
+          { label: "BTC", badge: <AssetBadge label="B" bg="#f7931a" />, qty: btcQty.toFixed(6) + " BTC", val: fmtUsd(btcQty * (prices.BTC || 0)) },
+          { label: "ETH", badge: <AssetBadge label="E" bg="#8a92b2" />, qty: ethQty.toFixed(6) + " ETH", val: fmtUsd(ethQty * (prices.ETH || 0)) },
+        ].map((row, i, arr) => (
+          <div
+            key={row.label}
+            className="flex justify-between items-center py-3 text-sm"
+            style={{ borderBottom: i < arr.length - 1 ? `1px solid ${COLORS.cardBorder}` : "none" }}
+          >
+            <div className="flex items-center gap-2.5 font-semibold" style={{ color: COLORS.textMain }}>{row.badge}{row.label}</div>
+            <div className="text-right">
+              <div style={{ color: COLORS.textMain }}>{row.qty}</div>
+              {row.val && <div className="text-[12.5px]" style={{ color: COLORS.textMuted }}>{row.val}</div>}
+            </div>
+          </div>
+        ))}
+        <MessageBox text={walletError} type="error" />
+      </Card>
+    </div>
+  );
+}
+
+// ---------------- HISTORY VIEW ----------------
+
+function HistoryView({ trades }) {
+  return (
+    <div className="max-w-[800px]">
+      <h1 className="text-2xl font-bold mb-1" style={{ color: COLORS.textMain, letterSpacing: "-0.02em" }}>İşlem Geçmişi</h1>
+      <p className="text-sm mb-6" style={{ color: COLORS.textMuted }}>Bu oturumda gerçekleştirdiğin al/sat işlemleri.</p>
+
+      <Card>
+        {trades.length === 0 ? (
+          <div className="text-center text-[13.5px] py-8" style={{ color: COLORS.textMuted }}>
+            Henüz bir işlem yapmadın. Piyasa sayfasından bir coin seçip al/sat yapabilirsin.
+          </div>
+        ) : (
+          trades.map((t, i) => {
+            const isBuy = t.action === "BUY";
+            return (
+              <div
+                key={i}
+                className="flex justify-between items-center py-3.5 text-sm"
+                style={{ borderBottom: i < trades.length - 1 ? `1px solid ${COLORS.cardBorder}` : "none" }}
+              >
+                <div className="flex items-center gap-3">
+                  <span
+                    className="rounded-lg px-2.5 py-1 text-[11px] font-bold"
+                    style={{
+                      background: isBuy ? COLORS.successBg : COLORS.errorBg,
+                      color: isBuy ? COLORS.successText : COLORS.errorText,
+                    }}
+                  >
+                    {isBuy ? "AL" : "SAT"}
+                  </span>
+                  <span className="font-semibold" style={{ color: COLORS.textMain }}>{t.coin}</span>
+                  <span style={{ color: COLORS.textMuted }}>{parseFloat(t.amount).toFixed(6)} {t.coin}</span>
+                </div>
+                <div className="text-right">
+                  <div style={{ color: COLORS.textMain }}>{fmtUsd(t.total)}</div>
+                  <div className="text-[11.5px]" style={{ color: COLORS.textMuted }}>
+                    {new Date(t.timestamp).toLocaleTimeString("tr-TR")}
+                  </div>
+                </div>
+              </div>
+            );
+          })
+        )}
+      </Card>
+    </div>
+  );
+}
+
+// ---------------- COPCOIN AI WIDGET (floating bottom-right) ----------------
+
+function AiWidget({ token }) {
+  const [open, setOpen] = useState(false);
+  const [bubbleDismissed, setBubbleDismissed] = useState(false);
+  const [aiLog, setAiLog] = useState([]);
+  const [aiQuestion, setAiQuestion] = useState("");
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiMessage, setAiMessage] = useState({ text: "", type: "" });
+  const logEndRef = useRef(null);
+
+  useEffect(() => {
+    if (logEndRef.current) logEndRef.current.scrollIntoView({ behavior: "smooth" });
+  }, [aiLog, aiLoading]);
+
+  const openPanel = () => {
+    setOpen(true);
+    setBubbleDismissed(true);
   };
 
   const submitAi = async (e) => {
@@ -374,7 +782,7 @@ function Dashboard({ session, onLogout }) {
     try {
       const res = await fetch(`${API_BASE}/api/ai/query`, {
         method: "POST",
-        headers: authHeaders(true),
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({ question }),
       });
       const data = await res.json();
@@ -390,221 +798,292 @@ function Dashboard({ session, onLogout }) {
     }
   };
 
-  const usdt = wallet ? parseFloat(wallet.usdtBalance || 0) : 0;
-  const btcQty = wallet ? parseFloat(wallet.btcBalance || 0) : 0;
-  const ethQty = wallet ? parseFloat(wallet.ethBalance || 0) : 0;
-  const totalValue = usdt + btcQty * (prices.BTC || 0) + ethQty * (prices.ETH || 0);
-
-  function priceChange(sym) {
-    const last = lastPrices[sym];
-    const current = prices[sym];
-    if (last === null || last === undefined || !current) return null;
-    const diff = current - last;
-    if (diff === 0) return null;
-    const pct = ((diff / last) * 100).toFixed(2);
-    return { up: diff > 0, text: (diff > 0 ? "▲ +" : "▼ ") + pct + "%" };
-  }
+  const botIconPath = "M12 3L14 9L20 12L14 15L12 21L10 15L4 12L10 9L12 3Z";
 
   return (
-    <div className="min-h-screen p-6" style={{ background: COLORS.bg, color: COLORS.textMain }}>
-      <div className="max-w-[1100px] mx-auto mb-6 flex items-center justify-between flex-wrap gap-3">
-        <div className="flex items-center gap-3">
-          <IconBadge size={40} radius={12} />
-          <span className="font-bold text-lg">CryptoPal</span>
-        </div>
-        <div className="flex items-center gap-3.5">
-          <span className="text-sm" style={{ color: COLORS.textMuted }}>
-            Hoş geldin, <b style={{ color: COLORS.textMain }}>{username}</b>
-          </span>
-          <button
-            onClick={onLogout}
-            className="rounded-xl px-4 py-2 text-[13.5px]"
-            style={{ background: COLORS.inputBg, border: `1px solid ${COLORS.inputBorder}`, color: COLORS.textMain }}
-          >
-            Çıkış Yap
-          </button>
-        </div>
-      </div>
-
-      {!userId && (
+    <>
+      {/* Konuşma balonu */}
+      {!open && !bubbleDismissed && (
         <div
-          className="max-w-[1100px] mx-auto mb-5 rounded-2xl px-4.5 py-3.5 text-[13.5px] flex items-center gap-3 flex-wrap"
-          style={{ background: COLORS.errorBg, border: `1px solid ${COLORS.errorBorder}`, color: COLORS.errorText }}
+          className="fixed z-40 flex items-end gap-2"
+          style={{ bottom: 96, right: 24, maxWidth: 260 }}
         >
-          <span>Backend girişte kullanıcı ID'si döndürmüyor, cüzdan/trade uçları için gerekli. ID'ni gir:</span>
-          <input
-            type="number"
-            value={idInput}
-            onChange={(e) => setIdInput(e.target.value)}
-            placeholder="örn: 1"
-            className="rounded-lg px-3 py-2 text-[13.5px]"
-            style={{ background: COLORS.inputBg, border: `1px solid ${COLORS.inputBorder}`, color: COLORS.textMain, width: 100 }}
-          />
-          <button
-            onClick={saveUserId}
-            className="rounded-lg px-3.5 py-2 font-bold text-[13px]"
-            style={{ background: COLORS.yellow, color: "#141414" }}
+          <div
+            onClick={openPanel}
+            className="rounded-2xl rounded-br-sm px-4 py-3 text-[13px] cursor-pointer transition-transform hover:-translate-y-0.5"
+            style={{ background: COLORS.card, border: `1px solid ${COLORS.cardBorder}`, color: COLORS.textMain, boxShadow: "0 12px 30px -10px rgba(0,0,0,0.6)", lineHeight: 1.45 }}
           >
-            Kaydet
+            <div className="font-bold mb-0.5" style={{ color: COLORS.yellow }}>CopCoin AI</div>
+            Merhaba! Portföyün ve piyasa trendleri hakkında merak ettiklerini sorabilirsin — yardımcı olayım mı?
+          </div>
+          <button
+            onClick={() => setBubbleDismissed(true)}
+            className="rounded-full flex items-center justify-center shrink-0"
+            style={{ width: 20, height: 20, background: COLORS.inputBg, border: `1px solid ${COLORS.inputBorder}`, color: COLORS.textMuted, fontSize: 11, marginBottom: 2 }}
+          >
+            ✕
           </button>
         </div>
       )}
 
-      <div className="max-w-[1100px] mx-auto grid grid-cols-12 gap-5">
+      {/* Yuvarlak buton */}
+      <button
+        onClick={() => setOpen((prev) => !prev)}
+        className="fixed flex items-center justify-center rounded-full transition-transform hover:scale-105"
+        style={{
+          bottom: 24, right: 24, width: 58, height: 58,
+          background: `linear-gradient(155deg, ${COLORS.yellow}, #e0ac00)`,
+          boxShadow: "0 10px 30px -8px rgba(253,199,0,0.55)",
+          zIndex: open ? 20 : 60,
+        }}
+        aria-label="CopCoin AI Botu"
+      >
+        <svg viewBox="0 0 24 24" fill="none" style={{ width: 24, height: 24 }}>
+          <path d={botIconPath} stroke="#141414" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </button>
 
-        {/* WALLET */}
-        <Card title="Cüzdanım" className="col-span-12 md:col-span-5">
-          <div className="text-3xl font-bold mb-1" style={{ letterSpacing: "-0.02em" }}>{fmtUsd(totalValue)}</div>
-          <div className="text-[13px] mb-5" style={{ color: COLORS.textMuted }}>Toplam Portföy Değeri (USDT + BTC + ETH)</div>
+      {/* Sağdan açılan panel */}
+      <div
+        className="fixed top-0 right-0 h-full flex flex-col transition-transform duration-300"
+        style={{
+          width: 300,
+          maxWidth: "88vw",
+          background: COLORS.sidebar,
+          borderLeft: `1px solid ${COLORS.cardBorder}`,
+          transform: open ? "translateX(0)" : "translateX(100%)",
+          boxShadow: open ? "-20px 0 50px -20px rgba(0,0,0,0.6)" : "none",
+          zIndex: 50,
+          pointerEvents: open ? "auto" : "none",
+        }}
+      >
+        <div className="flex items-center gap-2.5 px-5 py-5" style={{ borderBottom: `1px solid ${COLORS.cardBorder}` }}>
+          <span
+            className="flex items-center justify-center rounded-xl shrink-0"
+            style={{ width: 34, height: 34, background: `linear-gradient(155deg, ${COLORS.yellow}, #e0ac00)` }}
+          >
+            <svg viewBox="0 0 24 24" fill="none" style={{ width: 17, height: 17 }}>
+              <path d={botIconPath} stroke="#141414" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </span>
+          <div className="flex-1">
+            <div className="font-bold text-sm" style={{ color: COLORS.textMain }}>CopCoin AI</div>
+            <div className="text-[11.5px]" style={{ color: COLORS.textMuted }}>Size nasıl yardımcı olabilirim?</div>
+          </div>
+          <button
+            onClick={() => setOpen(false)}
+            className="rounded-lg flex items-center justify-center shrink-0"
+            style={{ width: 28, height: 28, background: COLORS.inputBg, border: `1px solid ${COLORS.inputBorder}`, color: COLORS.textMuted }}
+            aria-label="Kapat"
+          >
+            <svg viewBox="0 0 24 24" fill="none" style={{ width: 14, height: 14 }}>
+              <path d="M6 6L18 18M18 6L6 18" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" />
+            </svg>
+          </button>
+        </div>
 
-          {[
-            { label: "USDT (Nakit)", badge: <AssetBadge label="$" bg={COLORS.yellow} />, qty: fmtUsd(usdt), val: null },
-            { label: "BTC", badge: <AssetBadge label="B" bg="#f7931a" />, qty: btcQty.toFixed(6) + " BTC", val: fmtUsd(btcQty * (prices.BTC || 0)) },
-            { label: "ETH", badge: <AssetBadge label="E" bg="#8a92b2" />, qty: ethQty.toFixed(6) + " ETH", val: fmtUsd(ethQty * (prices.ETH || 0)) },
-          ].map((row, i, arr) => (
+        <div className="flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-3">
+          {aiLog.length === 0 && (
+            <div className="text-center text-[13px] py-6 px-2" style={{ color: COLORS.textMuted }}>
+              Portföyün ve piyasa trendleri hakkında bir soru sor.
+            </div>
+          )}
+          {aiLog.map((entry, i) => (
             <div
-              key={row.label}
-              className="flex justify-between items-center py-3 text-sm"
-              style={{ borderBottom: i < arr.length - 1 ? `1px solid ${COLORS.cardBorder}` : "none" }}
+              key={i}
+              className="rounded-2xl px-3.5 py-3 text-[13.3px]"
+              style={{
+                lineHeight: 1.5,
+                maxWidth: "88%",
+                alignSelf: entry.role === "question" ? "flex-end" : "flex-start",
+                background: entry.role === "question" ? COLORS.inputBg : "#151107",
+                color: entry.role === "question" ? COLORS.textMain : "#f4e2a6",
+                border: `1px solid ${entry.role === "question" ? COLORS.inputBorder : "#2a2210"}`,
+              }}
             >
-              <div className="flex items-center gap-2.5 font-semibold">{row.badge}{row.label}</div>
-              <div className="text-right">
-                <div>{row.qty}</div>
-                {row.val && <div className="text-[12.5px]" style={{ color: COLORS.textMuted }}>{row.val}</div>}
-              </div>
+              {entry.text}
             </div>
           ))}
-          <MessageBox text={walletError} type="error" />
-        </Card>
-
-        {/* MARKET PRICES */}
-        <Card title="Piyasa Fiyatları (Canlı)" className="col-span-12 md:col-span-7">
-          {["BTC", "ETH"].map((sym) => {
-            const change = priceChange(sym);
-            return (
-              <div key={sym} className="flex justify-between items-center py-3.5" style={{ borderBottom: `1px solid ${COLORS.cardBorder}` }}>
-                <div className="flex items-center gap-2.5 font-semibold">
-                  <AssetBadge label={sym[0]} bg={sym === "BTC" ? "#f7931a" : "#8a92b2"} />
-                  {sym}/USDT
-                </div>
-                <div>
-                  <span className="font-bold text-base">{fmtUsd(prices[sym])}</span>
-                  {change && (
-                    <span className="text-xs ml-2" style={{ color: change.up ? COLORS.successText : COLORS.errorText }}>
-                      {change.text}
-                    </span>
-                  )}
-                </div>
-              </div>
-            );
-          })}
-          <div className="text-xs text-center mt-3.5" style={{ color: COLORS.textMuted }}>
-            {priceError || "15 saniyede bir otomatik güncellenir"}
-          </div>
-        </Card>
-
-        {/* TRADE */}
-        <Card title="Al / Sat" className="col-span-12 md:col-span-6">
-          <form onSubmit={submitTrade}>
-            <div className="flex gap-2 mb-4">
-              {["BUY", "SELL"].map((a) => {
-                const active = action === a;
-                const isBuy = a === "BUY";
-                return (
-                  <button
-                    key={a}
-                    type="button"
-                    onClick={() => setAction(a)}
-                    className="flex-1 rounded-xl py-2.5 font-bold text-[13.5px]"
-                    style={{
-                      background: active ? (isBuy ? COLORS.successBg : COLORS.errorBg) : COLORS.inputBg,
-                      border: `1px solid ${active ? (isBuy ? COLORS.successBorder : COLORS.errorBorder) : COLORS.inputBorder}`,
-                      color: active ? (isBuy ? COLORS.successText : COLORS.errorText) : COLORS.textMuted,
-                    }}
-                  >
-                    {isBuy ? "AL" : "SAT"}
-                  </button>
-                );
-              })}
+          {aiLoading && (
+            <div className="flex items-center gap-2 self-start text-[12.5px]" style={{ color: COLORS.textMuted }}>
+              <Spinner /> Düşünüyor...
             </div>
+          )}
+          <div ref={logEndRef} />
+        </div>
 
-            <div className="mb-4">
-              <label className="block text-xs mb-2" style={{ color: "#b3b3b3" }}>Varlık</label>
-              <select
-                value={coin}
-                onChange={(e) => setCoin(e.target.value)}
-                className="w-full rounded-xl px-4 py-3 text-sm outline-none"
-                style={{ background: COLORS.inputBg, border: `1px solid ${COLORS.inputBorder}`, color: COLORS.textMain }}
-              >
-                <option value="BTC">BTC</option>
-                <option value="ETH">ETH</option>
-              </select>
-            </div>
-
-            <Field
-              label="Miktar"
-              type="number"
-              step="0.0001"
-              min="0"
-              placeholder="örn: 0.01"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              required
-            />
-
-            <PrimaryButton type="submit" loading={tradeLoading} loadingText="Gönderiliyor...">
-              Emri Gönder
-            </PrimaryButton>
-          </form>
-          <MessageBox text={tradeMessage.text} type={tradeMessage.type} />
-        </Card>
-
-        {/* AI ASSISTANT */}
-        <Card title="Yapay Zeka Asistanı" className="col-span-12 md:col-span-6">
-          <div className="flex flex-col gap-3 mb-4 overflow-y-auto" style={{ maxHeight: 260 }}>
-            {aiLog.length === 0 && (
-              <div className="text-center text-[13.5px] py-5 px-2.5" style={{ color: COLORS.textMuted }}>
-                Portföyün ve piyasa trendleri hakkında bir soru sor.
-              </div>
-            )}
-            {aiLog.map((entry, i) => (
-              <div
-                key={i}
-                className="rounded-2xl px-3.5 py-3 text-[13.8px]"
-                style={{
-                  lineHeight: 1.5,
-                  whiteSpace: "pre-wrap",
-                  maxWidth: entry.role === "question" ? "85%" : "90%",
-                  alignSelf: entry.role === "question" ? "flex-end" : "flex-start",
-                  background: entry.role === "question" ? COLORS.inputBg : "#151107",
-                  color: entry.role === "question" ? COLORS.textMain : "#f4e2a6",
-                  border: `1px solid ${entry.role === "question" ? COLORS.inputBorder : "#2a2210"}`,
-                }}
-              >
-                {entry.text}
-              </div>
-            ))}
-          </div>
-
-          <form onSubmit={submitAi}>
-            <div className="mb-4">
+        <div className="px-4 pb-4 pt-2" style={{ borderTop: `1px solid ${COLORS.cardBorder}` }}>
+          <MessageBox text={aiMessage.text} type={aiMessage.type} />
+          <form onSubmit={submitAi} className="mt-2">
+            <div className="flex items-end gap-2">
               <textarea
                 value={aiQuestion}
                 onChange={(e) => setAiQuestion(e.target.value)}
-                placeholder="örn: BTC trendine göre alım yapmalı mıyım?"
+                placeholder="Bir şeyler sor..."
                 required
-                className="w-full rounded-xl px-3.5 py-3 text-sm outline-none resize-y"
-                style={{ background: COLORS.inputBg, border: `1px solid ${COLORS.inputBorder}`, color: COLORS.textMain, minHeight: 80 }}
+                rows={1}
+                className="flex-1 rounded-xl px-3.5 py-2.5 text-[13px] outline-none resize-none"
+                style={{ background: COLORS.inputBg, border: `1px solid ${COLORS.inputBorder}`, color: COLORS.textMain }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    submitAi(e);
+                  }
+                }}
               />
+              <button
+                type="submit"
+                disabled={aiLoading}
+                className="rounded-xl flex items-center justify-center shrink-0 transition-colors"
+                style={{ width: 40, height: 40, background: COLORS.yellow, opacity: aiLoading ? 0.6 : 1 }}
+              >
+                <svg viewBox="0 0 24 24" fill="none" style={{ width: 17, height: 17 }}>
+                  <path d="M5 12H19M19 12L13 6M19 12L13 18" stroke="#141414" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </button>
             </div>
-            <PrimaryButton type="submit" ghost loading={aiLoading} loadingText="Düşünüyor...">
-              Sor
-            </PrimaryButton>
           </form>
-          <MessageBox text={aiMessage.text} type={aiMessage.type} />
-        </Card>
-
+        </div>
       </div>
+    </>
+  );
+}
+
+// ---------------- DASHBOARD ROOT ----------------
+
+function Dashboard({ session, onLogout }) {
+  const { token, username, userId } = session;
+
+  const [view, setView] = useState("home"); // home | portfolio | history | ai
+  const [selectedCoin, setSelectedCoin] = useState(null);
+
+  const [prices, setPrices] = useState({ BTC: 0, ETH: 0 });
+  const [lastPrices, setLastPrices] = useState({ BTC: null, ETH: null });
+
+  const [homeHistory, setHomeHistory] = useState({ BTC: [], ETH: [] });
+  const [detailHistory, setDetailHistory] = useState([]);
+  const [detailHistoryLoading, setDetailHistoryLoading] = useState(false);
+
+  const [wallet, setWallet] = useState(null);
+  const [walletError, setWalletError] = useState("");
+
+  const [trades, setTrades] = useState([]);
+
+  const loadPrices = useCallback(async () => {
+    try {
+      const res = await fetch(`${API_BASE}/api/market/prices`);
+      const data = await res.json();
+      const btc = parseFloat(data.BTC);
+      const eth = parseFloat(data.ETH);
+      setPrices((prevPrices) => {
+        setLastPrices({ BTC: prevPrices.BTC || null, ETH: prevPrices.ETH || null });
+        return { BTC: btc, ETH: eth };
+      });
+    } catch (err) {
+      // sessizce geç, kart üstünde zaten "-" gösterilir
+    }
+  }, []);
+
+  const loadHomeHistory = useCallback(async () => {
+    try {
+      const [btcRes, ethRes] = await Promise.all([
+        fetch(`${API_BASE}/api/market/history?asset=BTC`),
+        fetch(`${API_BASE}/api/market/history?asset=ETH`),
+      ]);
+      const btcData = await btcRes.json();
+      const ethData = await ethRes.json();
+      setHomeHistory({ BTC: btcData.slice(-30), ETH: ethData.slice(-30) });
+    } catch (err) {}
+  }, []);
+
+  const loadDetailHistory = useCallback(async (symbol) => {
+    setDetailHistoryLoading(true);
+    try {
+      const res = await fetch(`${API_BASE}/api/market/history?asset=${symbol}`);
+      const data = await res.json();
+      setDetailHistory(data.slice(-60));
+    } catch (err) {
+      setDetailHistory([]);
+    } finally {
+      setDetailHistoryLoading(false);
+    }
+  }, []);
+
+  const loadWallet = useCallback(async () => {
+    if (!userId) return;
+    setWalletError("");
+    try {
+      const res = await fetch(`${API_BASE}/api/wallet/${userId}`, { headers: { Authorization: `Bearer ${token}` } });
+      const data = await res.json();
+      if (!res.ok) {
+        setWalletError(data.error || data.message || "Cüzdan bilgisi alınamadı.");
+        return;
+      }
+      setWallet(data);
+    } catch (err) {
+      setWalletError("Sunucuya ulaşılamadı. Backend çalışıyor mu?");
+    }
+  }, [token, userId]);
+
+  useEffect(() => {
+    loadPrices();
+    loadHomeHistory();
+    const interval = setInterval(() => { loadPrices(); loadHomeHistory(); }, 15000);
+    return () => clearInterval(interval);
+  }, [loadPrices, loadHomeHistory]);
+
+  useEffect(() => { loadWallet(); }, [loadWallet]);
+
+  useEffect(() => {
+    if (view === "detail" && selectedCoin) {
+      loadDetailHistory(selectedCoin);
+    }
+  }, [view, selectedCoin, loadDetailHistory]);
+
+  const handleInspect = (symbol) => {
+    setSelectedCoin(symbol);
+    setView("detail");
+  };
+
+  const handleTraded = (trade) => {
+    setTrades((prev) => [trade, ...prev]);
+    loadWallet();
+  };
+
+  const handleNavigate = (key) => {
+    setView(key);
+    setSelectedCoin(null);
+  };
+
+  return (
+    <div className="min-h-screen flex" style={pageBg}>
+      <Sidebar active={view === "detail" ? "home" : view} onNavigate={handleNavigate} username={username} onLogout={onLogout} />
+
+      <div className="flex-1 flex flex-col">
+        <MobileNav active={view === "detail" ? "home" : view} onNavigate={handleNavigate} />
+        <div className="flex-1 p-6 md:p-8" style={{ color: COLORS.textMain }}>
+          {view === "home" && <HomeView prices={prices} lastPrices={lastPrices} history={homeHistory} onInspect={handleInspect} />}
+
+          {view === "detail" && selectedCoin && (
+            <CoinDetailView
+              coin={selectedCoin}
+              price={prices[selectedCoin]}
+              lastPrice={lastPrices[selectedCoin]}
+              history={detailHistory}
+              historyLoading={detailHistoryLoading}
+              userId={userId}
+              token={token}
+              onBack={() => { setView("home"); setSelectedCoin(null); }}
+              onTraded={handleTraded}
+            />
+          )}
+
+          {view === "portfolio" && <PortfolioView wallet={wallet} walletError={walletError} prices={prices} />}
+          {view === "history" && <HistoryView trades={trades} />}
+        </div>
+      </div>
+
+      <AiWidget token={token} />
     </div>
   );
 }
@@ -612,16 +1091,13 @@ function Dashboard({ session, onLogout }) {
 // ---------------- APP ROOT ----------------
 
 export default function App() {
-  const [session, setSession] = useState(null); // { token, username, balance, userId }
+  const [session, setSession] = useState(null);
 
   const handleAuthed = (s) => setSession(s);
   const handleLogout = async () => {
     if (session?.token) {
       try {
-        await fetch(`${API_BASE}/api/auth/logout`, {
-          method: "POST",
-          headers: { Authorization: `Bearer ${session.token}` },
-        });
+        await fetch(`${API_BASE}/api/auth/logout`, { method: "POST", headers: { Authorization: `Bearer ${session.token}` } });
       } catch (e) {}
     }
     setSession(null);
