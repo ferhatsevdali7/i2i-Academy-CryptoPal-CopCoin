@@ -151,4 +151,15 @@ public class WalletService {
                 totalCost
         );
     }
+
+    /**
+     * Kullanıcının veritabanındaki geçmiş alım/satım işlemlerini getirir.
+     */
+    @org.springframework.transaction.annotation.Transactional(readOnly = true)
+    public java.util.List<Transaction> getTransactionHistory(Long userId) {
+        UserWallet wallet = getWalletByUserId(userId);
+        return transactionRepository.findByUserOrderByCreatedAtDesc(wallet.getUser());
+    }
+
+
 }

@@ -954,8 +954,12 @@ function AiWidget({ token }) {
 function Dashboard({ session, onLogout }) {
   const { token, username, userId } = session;
 
-  const [view, setView] = useState("home"); // home | portfolio | history | ai
-  const [selectedCoin, setSelectedCoin] = useState(null);
+  const [view, setView] = useState(() => {
+    return localStorage.getItem("activeView") || "home";
+  });
+  const [selectedCoin, setSelectedCoin] = useState(() => {
+    return localStorage.getItem("selectedCoin") || null;
+  });
 
   const [prices, setPrices] = useState({ BTC: 0, ETH: 0 });
   const [lastPrices, setLastPrices] = useState({ BTC: null, ETH: null });
@@ -993,7 +997,7 @@ function Dashboard({ session, onLogout }) {
       const btcData = await btcRes.json();
       const ethData = await ethRes.json();
       setHomeHistory({ BTC: btcData.slice(-30), ETH: ethData.slice(-30) });
-    } catch (err) {}
+    } catch (err) { }
   }, []);
 
   const loadDetailHistory = useCallback(async (symbol) => {
@@ -1025,6 +1029,29 @@ function Dashboard({ session, onLogout }) {
     }
   }, [token, userId]);
 
+  const loadTrades = useCallback(async () => {
+    if (!userId) return;
+    try {
+      const res = await fetch(`${API_BASE}/api/wallet/${userId}/transactions`, { headers: { Authorization: `Bearer ${token}` } });
+      const data = await res.json();
+      if (res.ok) {
+        // Backend'den gelen verileri arayüze uyumlu hale getirip state e kaydediyoruz
+        const mapped = data.map(t => ({
+          action: t.transactionType,
+          coin: t.assetName,
+          amount: t.amount,
+          price: t.price,
+          total: t.totalCost,
+          timestamp: t.createdAt
+        }));
+        setTrades(mapped);
+      }
+    } catch (err) {
+      console.error("İşlem geçmişi yüklenirken hata oluştu:", err);
+    }
+  }, [token, userId]);
+
+
   useEffect(() => {
     loadPrices();
     loadHomeHistory();
@@ -1032,7 +1059,11 @@ function Dashboard({ session, onLogout }) {
     return () => clearInterval(interval);
   }, [loadPrices, loadHomeHistory]);
 
-  useEffect(() => { loadWallet(); }, [loadWallet]);
+
+  useEffect(() => {
+    loadWallet();
+    loadTrades();
+  }, [loadWallet, loadTrades]);
 
   useEffect(() => {
     if (view === "detail" && selectedCoin) {
@@ -1041,6 +1072,8 @@ function Dashboard({ session, onLogout }) {
   }, [view, selectedCoin, loadDetailHistory]);
 
   const handleInspect = (symbol) => {
+    localStorage.setItem("activeView", "detail");
+    localStorage.setItem("selectedCoin", symbol);
     setSelectedCoin(symbol);
     setView("detail");
   };
@@ -1051,6 +1084,8 @@ function Dashboard({ session, onLogout }) {
   };
 
   const handleNavigate = (key) => {
+    localStorage.setItem("activeView", key);
+    localStorage.removeItem("selectedCoin");
     setView(key);
     setSelectedCoin(null);
   };
@@ -1073,7 +1108,12 @@ function Dashboard({ session, onLogout }) {
               historyLoading={detailHistoryLoading}
               userId={userId}
               token={token}
-              onBack={() => { setView("home"); setSelectedCoin(null); }}
+              onBack={() => {
+                localStorage.setItem("activeView", "home");
+                localStorage.removeItem("selectedCoin");
+                setView("home");
+                setSelectedCoin(null);
+              }}
               onTraded={handleTraded}
             />
           )}
@@ -1091,18 +1131,28 @@ function Dashboard({ session, onLogout }) {
 // ---------------- APP ROOT ----------------
 
 export default function App() {
-  const [session, setSession] = useState(null);
-
-  const handleAuthed = (s) => setSession(s);
+  //sayfa yenilendiğinde tarayıcı hafızasında  kayıtlı oturum var mı diye bakıp onunla başlıyoruz
+  const [session, setSession] = useState(() => {
+    const saved = localStorage.getItem("session");
+    return saved ? JSON.parse(saved) : null;
+  });
+  // giriş başarılı olduğunda bilgileri hem React state ine hem de localStorage a yazıyoruz
+  const handleAuthed = (s) => {
+    localStorage.setItem("session", JSON.stringify(s));
+    setSession(s);
+  };
+  // çıkış yapıldığında verileri temizliyoruz
   const handleLogout = async () => {
     if (session?.token) {
       try {
         await fetch(`${API_BASE}/api/auth/logout`, { method: "POST", headers: { Authorization: `Bearer ${session.token}` } });
-      } catch (e) {}
+      } catch (e) { }
     }
+    localStorage.removeItem("session");
+    localStorage.removeItem("activeView");
+    localStorage.removeItem("selectedCoin");
     setSession(null);
   };
-
   if (!session) return <AuthScreen onAuthed={handleAuthed} />;
   return <Dashboard session={session} onLogout={handleLogout} />;
 }

@@ -1,6 +1,7 @@
 package com.i2i.cryptopal.controller;
 
 import com.i2i.cryptopal.model.UserWallet;
+import com.i2i.cryptopal.model.Transaction;
 import com.i2i.cryptopal.service.WalletService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -56,4 +57,21 @@ public class WalletController {
         UserWallet updatedWallet = walletService.depositUsdt(userId, amount);
         return ResponseEntity.ok(updatedWallet);
     }
+
+    /**
+     * Kullanıcının geçmiş işlemlerini çeken API ucu.
+     * GET http://localhost:8080/api/wallet/{userId}/transactions
+     */
+    @GetMapping("/{userId}/transactions")
+    public ResponseEntity<?> getTransactions(@PathVariable Long userId, HttpServletRequest request) {
+        // Güvenlik: İstekteki token ile sorgulanan ID uyuşuyor mu? (IDOR Kontrolü)
+        Long authenticatedUserId = (Long) request.getAttribute("authenticatedUserId");
+        if (!authenticatedUserId.equals(userId)) {
+            return ResponseEntity.status(403).body(Map.of("error", "Bu işlem geçmişine erişim yetkiniz yok!"));
+        }
+
+        java.util.List<Transaction> history = walletService.getTransactionHistory(userId);
+        return ResponseEntity.ok(history);
+    }
+
 }
