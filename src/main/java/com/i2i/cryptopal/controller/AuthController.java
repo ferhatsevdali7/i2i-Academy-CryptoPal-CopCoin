@@ -55,7 +55,7 @@ public class AuthController {
                 token,
                 user.getUsername(),
                 user.getBalance(),
-                "Giriş başarılı. Oturum Redis üzerinde başlatıldı."
+                "Giriş başarılı."
         );
 
         return ResponseEntity.ok(response);

@@ -143,10 +143,10 @@ public class WalletService {
         
         transactionRepository.save(txLog);
 
-        // 7. API kılavuzuna uygun saf işlem dekontu nesnesini dön
+        // 7. API kılavuzuna uygun saf işlem dekontu nesnesini dön (Ege)
         return new TradeResponse(
                 "SUCCESS",
-                request.getAction().toUpperCase() + " işlemi anlık fiyat üzerinden başarıyla gerçekleşti.",
+                "İşlem anlık fiyat üzerinden başarıyla gerçekleşti.",
                 request.getAction().toUpperCase(),
                 coinKey,
                 request.getAmount(),

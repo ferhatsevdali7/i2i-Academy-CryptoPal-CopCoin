@@ -43,7 +43,7 @@ const COINS = [
   { symbol: "ETH", name: "Ethereum", badgeBg: "#8a92b2" },
 ];
 
-// ---------------- SHARED UI ----------------
+//SHARED UI 
 
 function IconBadge({ size = 56, radius = 16 }) {
   return (
@@ -177,7 +177,7 @@ function Card({ title, className = "", children, right = null, height = null }) 
   );
 }
 
-// ---------------- AUTH SCREEN ----------------
+// AUTH SCREEN
 
 function AuthScreen({ onAuthed, expiredNotice }) {
   const [mode, setMode] = useState("login");
@@ -247,12 +247,12 @@ function AuthScreen({ onAuthed, expiredNotice }) {
 
         {isLogin ? (
           <>
-            <h1 className="text-center font-bold text-2xl mb-2" style={{ color: COLORS.textMain, letterSpacing: "-0.02em" }}>Hoş Geldiniz</h1>
+            <h1 className="text-center font-bold text-2xl mb-1" style={{ color: COLORS.textMain, letterSpacing: "-0.02em" }}>Hoş Geldiniz</h1>
             <p className="text-center text-sm mb-7 px-1.5" style={{ color: COLORS.textMuted, lineHeight: 1.5 }}>İşlemlerinize devam etmek için lütfen giriş yapınız</p>
           </>
         ) : (
           <>
-            <h1 className="text-center font-bold text-2xl mb-2" style={{ color: COLORS.textMain, letterSpacing: "-0.02em" }}>Aramıza Katıl</h1>
+            <h1 className="text-center font-bold text-2xl mb-1" style={{ color: COLORS.textMain, letterSpacing: "-0.02em" }}>Aramıza Katıl</h1>
             <p className="text-center text-sm mb-7 px-1.5" style={{ color: COLORS.textMuted, lineHeight: 1.5 }}>Hesabını oluştur, sana özel başlangıç bakiyesiyle işlem yapmaya başla</p>
           </>
         )}
@@ -283,7 +283,7 @@ function AuthScreen({ onAuthed, expiredNotice }) {
   );
 }
 
-// ---------------- SIDEBAR ----------------
+//yan bar
 
 function NavIcon({ path, size = 18 }) {
   return (
@@ -388,7 +388,7 @@ function MobileNav({ active, onNavigate }) {
   );
 }
 
-// ---------------- MINI SPARKLINE (for home list rows) ----------------
+// listlenmiş satırlar-
 
 function MiniSparkline({ points, color }) {
   if (!points || points.length < 2) {
@@ -410,7 +410,7 @@ function MiniSparkline({ points, color }) {
   );
 }
 
-// ---------------- HOME VIEW ----------------
+// ana ekran
 
 function HomeView({ prices, lastPrices, history, onInspect }) {
   function priceChange(sym) {
@@ -476,7 +476,7 @@ function HomeView({ prices, lastPrices, history, onInspect }) {
   );
 }
 
-// ---------------- COIN DETAIL VIEW (chart + buy/sell) ----------------
+// coin detay al sat
 
 function LineChart({ points }) {
   if (!points || points.length < 2) {
@@ -699,7 +699,7 @@ function CoinDetailView({ coin, price, lastPrice, history, historyLoading, userI
   );
 }
 
-// ---------------- PORTFOLIO VIEW ----------------
+//  PORTFOLIO
 
 function PortfolioView({ wallet, walletError, prices }) {
   const usdt = wallet ? parseFloat(wallet.usdtBalance || 0) : 0;
@@ -739,7 +739,7 @@ function PortfolioView({ wallet, walletError, prices }) {
   );
 }
 
-// ---------------- HISTORY VIEW ----------------
+// Alım satım geçmişi görüntüleme
 
 function HistoryView({ transactions, error, loading }) {
   return (
@@ -795,8 +795,7 @@ function HistoryView({ transactions, error, loading }) {
   );
 }
 
-// ---------------- COPCOIN AI WIDGET (floating bottom-right) ----------------
-
+// COPCOIN AI 
 function AiWidget({ token, open, onOpenChange }) {
   const [bubbleDismissed, setBubbleDismissed] = useState(false);
   const [aiLog, setAiLog] = useState([]);
@@ -992,7 +991,7 @@ function AiWidget({ token, open, onOpenChange }) {
   );
 }
 
-// ---------------- ACCOUNT PANEL (profil, sifre degistir, hesap sil) ----------------
+// PANEL profil, sifre degistir, hesap sil
 
 function AccountPanel({ token, username, userId, onClose, onAccountDeleted }) {
   const [tab, setTab] = useState("info"); // info | password | danger
@@ -1072,7 +1071,7 @@ function AccountPanel({ token, username, userId, onClose, onAccountDeleted }) {
   const tabs = [
     { key: "info", label: "Hesap Bilgileri" },
     { key: "password", label: "Şifre Değiştir" },
-    { key: "danger", label: "Tehlikeli Bölge" },
+    { key: "danger", label: "Hesap Silme" },
   ];
 
   return (
@@ -1199,7 +1198,7 @@ function AccountPanel({ token, username, userId, onClose, onAccountDeleted }) {
   );
 }
 
-// ---------------- DASHBOARD ROOT ----------------
+// DASHBOARD ROOT 
 
 function Dashboard({ session, onLogout, onAccountDeleted }) {
   const { token, username, userId } = session;
@@ -1381,9 +1380,9 @@ function Dashboard({ session, onLogout, onAccountDeleted }) {
   );
 }
 
-// ---------------- APP ROOT ----------------
 
-// ---------------- LOADING SCREEN (giristen sonra 3 saniye gosteriliyor, 2 top daire ciziyor) (Ege) ----------------
+
+//  yükleme ekranı
 
 function LoadingScreen() {
   return (
@@ -1441,14 +1440,14 @@ export default function App() {
     }
   });
   const [expiredNotice, setExpiredNotice] = useState(false);
-  const [showLoadingScreen, setShowLoadingScreen] = useState(false); // giris sonrasi 3sn yukleniyor ekrani (Ege)
+  const [showLoadingScreen, setShowLoadingScreen] = useState(false); //  yukleniyor ekrani (Ege)
 
   const handleAuthed = (s) => {
     setSession(s);
     setExpiredNotice(false);
     sessionStorage.setItem(SESSION_KEY, JSON.stringify(s));
     setShowLoadingScreen(true);
-    setTimeout(() => setShowLoadingScreen(false), 3000); // 3 saniye sonra dashboard acilir (Ege)
+    setTimeout(() => setShowLoadingScreen(false), 3000); //  dashboard acilir (Ege)
   };
 
   const handleLogout = async () => {
