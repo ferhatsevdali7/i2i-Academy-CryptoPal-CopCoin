@@ -5,7 +5,8 @@ const API_BASE = "http://localhost:8080";
 // oturum suresi dolunca (401) tum uygulamayi tek noktadan cikis ekranina atmak icin
 let sessionExpiredHandler = null;
 
-async function apiFetch(url, options) {
+async function apiFetch(url, options = {}) {
+  options.credentials = "include"; // cookie'leri otomatik gönder
   const res = await fetch(url, options);
   if (res.status === 401 && sessionExpiredHandler) {
     sessionExpiredHandler();
@@ -207,6 +208,7 @@ function AuthScreen({ onAuthed, expiredNotice }) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),
+        credentials: "include", // cookie'lerin alinabilmesi icin gerekli
       });
       const data = await res.json();
 
@@ -1451,11 +1453,9 @@ export default function App() {
   };
 
   const handleLogout = async () => {
-    if (session?.token) {
-      try {
-        await fetch(`${API_BASE}/api/auth/logout`, { method: "POST", headers: { Authorization: `Bearer ${session.token}` } });
-      } catch (e) {}
-    }
+    try {
+      await apiFetch(`${API_BASE}/api/auth/logout`, { method: "POST" });
+    } catch (e) {}
     sessionStorage.removeItem(SESSION_KEY);
     setSession(null);
   };

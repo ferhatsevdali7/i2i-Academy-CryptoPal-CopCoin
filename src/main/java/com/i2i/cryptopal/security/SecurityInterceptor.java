@@ -26,25 +26,39 @@ public class SecurityInterceptor implements HandlerInterceptor {
             return true; 
         }
 
-        // 1.HTTP isteğinin başlığından Authorization verisini çekiyoruz.
-        String authHeader = request.getHeader("Authorization");
+        String token = null;
 
-        //2. Güvenlik Kontrolü: Token gönderilmiş mi ve "Bearer " formatına uygun mu?
-        if (authHeader == null || !authHeader.toLowerCase().startsWith("bearer ")) {
+// 1. Önce HttpOnly Çerezinden (Cookie) token'ı aramayı dene
+        if (request.getCookies() != null) {
+            for (jakarta.servlet.http.Cookie cookie : request.getCookies()) {
+                if ("token".equals(cookie.getName())) {
+                    token = cookie.getValue();
+                    break;
+                }
+            }
+        }
+
+        // 2. Eğer çerezde bulunamazsa (Swagger vb. için) Authorization başlığına (Header) bak
+        if (token == null) {
+            String authHeader = request.getHeader("Authorization");
+            if (authHeader != null && authHeader.toLowerCase().startsWith("bearer ")) {
+                token = authHeader.substring(7).trim();
+            }
+        }
+
+        // 3. Güvenlik Kontrolü: Token bulunamadıysa yetkisiz erişim dönüyoruz.
+        if (token == null) {
             return sendUnAuthorizedResponse(response, "Yetkisiz erişim! Oturum token'ı bulunamadı, lütfen giriş yapın.");
         }
 
-        // "Bearer " kelimesini ve olası sağındaki-solundaki boşlukları .trim() ile temizliyoruzz.
-        String token = authHeader.substring(7).trim();
-
-        //3.Redis Kontrolü: Bu token'a karşılık gelen aktif bir kullanıcı ID'si var mı?
-        String userIdStr = redisTemplate.opsForValue().get("session:" + token);  // ön ek uyşmazlığını çözdüm (Ferhat)
+        // 4. Redis Kontrolü: Bu token'a karşılık gelen aktif bir kullanıcı ID'si var mı?
+        String userIdStr = redisTemplate.opsForValue().get("session:" + token);
 
         if (userIdStr == null) {
             return sendUnAuthorizedResponse(response, "Oturum süreniz dolmuş veya geçersiz token! Lütfen tekrar giriş yapın.");
         }
 
-        // 4. SENKRONİZASYON HAMLESİ: Controller katmanında rahatça kıyaslama yapabilmek için,
+        // 5. SENKRONİZASYON HAMLESİ: Controller katmanında rahatça kıyaslama yapabilmek için,
         // Redis'ten gelen String ID'yi Long tipine güvenle çevirip isteğin içine (attribute) gömüyoruz.
         request.setAttribute("authenticatedUserId", Long.valueOf(userIdStr));
 

@@ -58,7 +58,18 @@ public class AuthController {
                 "Giriş başarılı."
         );
 
-        return ResponseEntity.ok(response);
+        // HttpOnly Çerezi (Cookie) oluşturuyoruz:
+        org.springframework.http.ResponseCookie cookie = org.springframework.http.ResponseCookie.from("token", token)
+                .httpOnly(true)
+                .secure(false) // Localhost'ta çalıştığımız için HTTPS gerekliliğini false yaptık
+                .path("/")
+                .maxAge(86400) // 1 gün geçerli
+                .sameSite("Lax")
+                .build();
+
+        return ResponseEntity.ok()
+                .header(org.springframework.http.HttpHeaders.SET_COOKIE, cookie.toString())
+                .body(response);
     }
 
     // Header dan Authorization bilgisini çekiyoruz
@@ -67,18 +78,41 @@ public class AuthController {
 
     @PostMapping("/logout")
     public ResponseEntity<?> logout(HttpServletRequest request) {
+        String token = null;
 
-        String authHeader = request.getHeader("Authorization");
+        // 1. Önce çerezde token var mı diye bak
+        if (request.getCookies() != null) {
+            for (jakarta.servlet.http.Cookie c : request.getCookies()) {
+                if ("token".equals(c.getName())) {
+                    token = c.getValue();
+                    break;
+                }
+            }
+        }
 
+        // 2. Çerezde yoksa (Swagger testi vb. için) Authorization başlığına bak
+        if (token == null) {
+            String authHeader = request.getHeader("Authorization");
+            if (authHeader != null && authHeader.toLowerCase().startsWith("bearer ")) {
+                token = authHeader.substring(7).trim();
+            }
+        }
 
-        if (authHeader != null && authHeader.toLowerCase().startsWith("bearer ")) {
-
-            String token = authHeader.substring(7).trim();
-
+        if (token != null) {
             userService.logoutUser(token);
         }
 
-        return ResponseEntity.ok(Map.of("message", "Çıkış başarılı. Oturum sonlandırıldı."));
+        org.springframework.http.ResponseCookie deleteCookie = org.springframework.http.ResponseCookie.from("token", "")
+                .httpOnly(true)
+                .secure(false)
+                .path("/")
+                .maxAge(0) // 0 saniye = anında sil
+                .sameSite("Lax")
+                .build();
+
+        return ResponseEntity.ok()
+                .header(org.springframework.http.HttpHeaders.SET_COOKIE, deleteCookie.toString())
+                .body(Map.of("message", "Çıkış başarılı. Oturum sonlandırıldı."));
     }
 
     // Sifre degistirme ucu: kullanici hesap panelinden eski sifresini dogrulayip yenisini belirliyor (Ege)
@@ -99,13 +133,38 @@ public class AuthController {
 
         userService.deleteAccount(authenticatedUserId, password);
 
-        // hesap silinince Redis'teki oturumu da temizliyoruz, token bosta kalmasin (Ege)
-        String authHeader = httpRequest.getHeader("Authorization");
-        if (authHeader != null && authHeader.toLowerCase().startsWith("bearer ")) {
-            userService.logoutUser(authHeader.substring(7).trim());
+        // Token'ı bul ve Redis'ten sil
+        String token = null;
+        if (httpRequest.getCookies() != null) {
+            for (jakarta.servlet.http.Cookie c : httpRequest.getCookies()) {
+                if ("token".equals(c.getName())) {
+                    token = c.getValue();
+                    break;
+                }
+            }
+        }
+        if (token == null) {
+            String authHeader = httpRequest.getHeader("Authorization");
+            if (authHeader != null && authHeader.toLowerCase().startsWith("bearer ")) {
+                token = authHeader.substring(7).trim();
+            }
+        }
+        if (token != null) {
+            userService.logoutUser(token);
         }
 
-        return ResponseEntity.ok(Map.of("message", "Hesap kalici olarak silindi."));
+        // Çerezi tarayıcıdan sildir
+        org.springframework.http.ResponseCookie deleteCookie = org.springframework.http.ResponseCookie.from("token", "")
+                .httpOnly(true)
+                .secure(false)
+                .path("/")
+                .maxAge(0)
+                .sameSite("Lax")
+                .build();
+
+        return ResponseEntity.ok()
+                .header(org.springframework.http.HttpHeaders.SET_COOKIE, deleteCookie.toString())
+                .body(Map.of("message", "Hesap kalici olarak silindi."));
     }
 
 }
