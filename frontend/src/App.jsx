@@ -2,6 +2,17 @@ import React, { useState, useEffect, useCallback, useRef } from "react";
 
 const API_BASE = "http://localhost:8080";
 
+// oturum suresi dolunca (401) tum uygulamayi tek noktadan cikis ekranina atmak icin
+let sessionExpiredHandler = null;
+
+async function apiFetch(url, options) {
+  const res = await fetch(url, options);
+  if (res.status === 401 && sessionExpiredHandler) {
+    sessionExpiredHandler();
+  }
+  return res;
+}
+
 const COLORS = {
   bg: "#000000",
   sidebar: "#0a0a0a",
@@ -134,7 +145,7 @@ function AssetBadge({ label, bg, size = 28 }) {
   );
 }
 
-function Card({ title, className = "", children, right = null }) {
+function Card({ title, className = "", children, right = null, height = null }) {
   const [hover, setHover] = useState(false);
   return (
     <div
@@ -145,10 +156,13 @@ function Card({ title, className = "", children, right = null }) {
         background: COLORS.card,
         border: `1px solid ${hover ? COLORS.cardBorderHover : COLORS.cardBorder}`,
         boxShadow: hover ? "0 20px 40px -24px rgba(0,0,0,0.7)" : "none",
+        height: height || undefined,
+        display: height ? "flex" : undefined,
+        flexDirection: height ? "column" : undefined,
       }}
     >
       {title && (
-        <div className="flex items-center justify-between mb-4.5">
+        <div className="flex items-center justify-between mb-4.5 shrink-0">
           <h2 className="flex items-center gap-2 text-sm font-medium" style={{ color: COLORS.textMain }}>
             <span className="inline-block rounded-full" style={{ width: 7, height: 7, background: COLORS.yellow, boxShadow: `0 0 8px ${COLORS.yellow}` }} />
             {title}
@@ -156,19 +170,23 @@ function Card({ title, className = "", children, right = null }) {
           {right}
         </div>
       )}
-      {children}
+      <div style={height ? { overflowY: "auto", flex: 1, minHeight: 0 } : undefined}>
+        {children}
+      </div>
     </div>
   );
 }
 
 // ---------------- AUTH SCREEN ----------------
 
-function AuthScreen({ onAuthed }) {
+function AuthScreen({ onAuthed, expiredNotice }) {
   const [mode, setMode] = useState("login");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState({ text: "", type: "" });
+  const [message, setMessage] = useState(
+    expiredNotice ? { text: "Oturumun süresi doldu, güvenlik için tekrar giriş yapman gerekiyor.", type: "error" } : { text: "", type: "" }
+  );
 
   const isLogin = mode === "login";
 
@@ -278,7 +296,7 @@ const NAV_ITEMS = [
   { key: "history", label: "İşlem Geçmişi", icon: "M12 8V12L15 15M21 12A9 9 0 1 1 12 3" },
 ];
 
-function Sidebar({ active, onNavigate, username, onLogout }) {
+function Sidebar({ active, onNavigate, username, onLogout, onOpenAccount }) {
   return (
     <div
       className="hidden md:flex flex-col shrink-0"
@@ -310,15 +328,24 @@ function Sidebar({ active, onNavigate, username, onLogout }) {
       </nav>
 
       <div className="px-4 pb-5 pt-3" style={{ borderTop: `1px solid ${COLORS.cardBorder}` }}>
-        <div className="flex items-center gap-2.5 px-2 mb-3">
+        <button
+          onClick={onOpenAccount}
+          className="w-full flex items-center gap-2.5 px-2 py-2 mb-2 rounded-xl transition-colors"
+          style={{ background: "transparent" }}
+          onMouseEnter={(e) => { e.currentTarget.style.background = COLORS.inputBg; }}
+          onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
+        >
           <span
             className="flex items-center justify-center rounded-full font-bold text-xs shrink-0"
             style={{ width: 32, height: 32, background: COLORS.yellow, color: "#141414" }}
           >
             {username?.[0]?.toUpperCase() || "?"}
           </span>
-          <span className="text-[13.5px] font-semibold truncate" style={{ color: COLORS.textMain }}>{username}</span>
-        </div>
+          <span className="text-[13.5px] font-semibold truncate flex-1 text-left" style={{ color: COLORS.textMain }}>{username}</span>
+          <svg viewBox="0 0 24 24" fill="none" style={{ width: 14, height: 14, color: COLORS.textMuted }}>
+            <path d="M9 6L15 12L9 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </button>
         <button
           onClick={onLogout}
           className="w-full rounded-xl px-3.5 py-2.5 text-[13px] font-medium transition-colors"
@@ -395,7 +422,7 @@ function HomeView({ prices, lastPrices, history, onInspect }) {
       <h1 className="text-2xl font-bold mb-1" style={{ color: COLORS.textMain, letterSpacing: "-0.02em" }}>Piyasa</h1>
       <p className="text-sm mb-6" style={{ color: COLORS.textMuted }}>Kriptoların canlı fiyatlarını takip et, incele ve işlem yap.</p>
 
-      <Card>
+      <Card height={480}>
         {COINS.map((coin, i) => {
           const change = priceChange(coin.symbol);
           return (
@@ -518,7 +545,7 @@ function CoinDetailView({ coin, price, lastPrice, history, historyLoading, userI
     setTradeMessage({ text: "", type: "" });
     setTradeLoading(true);
     try {
-      const res = await fetch(`${API_BASE}/api/trade/order`, {
+      const res = await apiFetch(`${API_BASE}/api/trade/order`, {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({ userId: Number(userId), coinSymbol: coin, action, amount }),
@@ -571,7 +598,7 @@ function CoinDetailView({ coin, price, lastPrice, history, historyLoading, userI
       </div>
 
       <div className="grid grid-cols-12 gap-5">
-        <Card title="Fiyat Grafiği" className="col-span-12 lg:col-span-7">
+        <Card title="Fiyat Grafiği" className="col-span-12 lg:col-span-7" height={480}>
           {historyLoading ? (
             <div className="flex items-center justify-center gap-2" style={{ height: 220, color: COLORS.textMuted, fontSize: 13 }}>
               <Spinner /> Yükleniyor...
@@ -581,7 +608,7 @@ function CoinDetailView({ coin, price, lastPrice, history, historyLoading, userI
           )}
         </Card>
 
-        <Card title={`${coin} Al / Sat`} className="col-span-12 lg:col-span-5">
+        <Card title={`${coin} Al / Sat`} className="col-span-12 lg:col-span-5" height={480}>
           <form onSubmit={submitTrade}>
             <div className="flex gap-2 mb-4">
               {["BUY", "SELL"].map((a) => {
@@ -670,11 +697,11 @@ function PortfolioView({ wallet, walletError, prices }) {
   const totalValue = usdt + btcQty * (prices.BTC || 0) + ethQty * (prices.ETH || 0);
 
   return (
-    <div className="max-w-[700px]">
+    <div className="max-w-[1000px]">
       <h1 className="text-2xl font-bold mb-1" style={{ color: COLORS.textMain, letterSpacing: "-0.02em" }}>Portföyüm</h1>
       <p className="text-sm mb-6" style={{ color: COLORS.textMuted }}>Nakit bakiyen ve sahip olduğun varlıklar.</p>
 
-      <Card>
+      <Card height={480}>
         <div className="text-3xl font-bold mb-1" style={{ letterSpacing: "-0.02em", color: COLORS.textMain }}>{fmtUsd(totalValue)}</div>
         <div className="text-[13px] mb-5" style={{ color: COLORS.textMuted }}>Toplam Portföy Değeri (USDT + BTC + ETH)</div>
 
@@ -703,25 +730,31 @@ function PortfolioView({ wallet, walletError, prices }) {
 
 // ---------------- HISTORY VIEW ----------------
 
-function HistoryView({ trades }) {
+function HistoryView({ transactions, error, loading }) {
   return (
-    <div className="max-w-[800px]">
+    <div className="max-w-[1000px]">
       <h1 className="text-2xl font-bold mb-1" style={{ color: COLORS.textMain, letterSpacing: "-0.02em" }}>İşlem Geçmişi</h1>
-      <p className="text-sm mb-6" style={{ color: COLORS.textMuted }}>Bu oturumda gerçekleştirdiğin al/sat işlemleri.</p>
+      <p className="text-sm mb-6" style={{ color: COLORS.textMuted }}>Bugüne kadar gerçekleştirdiğin tüm al/sat işlemleri.</p>
 
-      <Card>
-        {trades.length === 0 ? (
+      <Card height={480}>
+        {loading ? (
+          <div className="flex items-center justify-center gap-2 py-8" style={{ color: COLORS.textMuted, fontSize: 13 }}>
+            <Spinner /> Yükleniyor...
+          </div>
+        ) : error ? (
+          <MessageBox text={error} type="error" />
+        ) : transactions.length === 0 ? (
           <div className="text-center text-[13.5px] py-8" style={{ color: COLORS.textMuted }}>
             Henüz bir işlem yapmadın. Piyasa sayfasından bir coin seçip al/sat yapabilirsin.
           </div>
         ) : (
-          trades.map((t, i) => {
-            const isBuy = t.action === "BUY";
+          transactions.map((t, i) => {
+            const isBuy = t.transactionType === "BUY";
             return (
               <div
-                key={i}
+                key={t.id ?? i}
                 className="flex justify-between items-center py-3.5 text-sm"
-                style={{ borderBottom: i < trades.length - 1 ? `1px solid ${COLORS.cardBorder}` : "none" }}
+                style={{ borderBottom: i < transactions.length - 1 ? `1px solid ${COLORS.cardBorder}` : "none" }}
               >
                 <div className="flex items-center gap-3">
                   <span
@@ -733,13 +766,13 @@ function HistoryView({ trades }) {
                   >
                     {isBuy ? "AL" : "SAT"}
                   </span>
-                  <span className="font-semibold" style={{ color: COLORS.textMain }}>{t.coin}</span>
-                  <span style={{ color: COLORS.textMuted }}>{parseFloat(t.amount).toFixed(6)} {t.coin}</span>
+                  <span className="font-semibold" style={{ color: COLORS.textMain }}>{t.assetName}</span>
+                  <span style={{ color: COLORS.textMuted }}>{parseFloat(t.amount).toFixed(6)} {t.assetName}</span>
                 </div>
                 <div className="text-right">
-                  <div style={{ color: COLORS.textMain }}>{fmtUsd(t.total)}</div>
+                  <div style={{ color: COLORS.textMain }}>{fmtUsd(t.totalCost)}</div>
                   <div className="text-[11.5px]" style={{ color: COLORS.textMuted }}>
-                    {new Date(t.timestamp).toLocaleTimeString("tr-TR")}
+                    {new Date(t.createdAt).toLocaleString("tr-TR")}
                   </div>
                 </div>
               </div>
@@ -780,7 +813,7 @@ function AiWidget({ token }) {
     setAiQuestion("");
     setAiLoading(true);
     try {
-      const res = await fetch(`${API_BASE}/api/ai/query`, {
+      const res = await apiFetch(`${API_BASE}/api/ai/query`, {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({ question }),
@@ -949,17 +982,221 @@ function AiWidget({ token }) {
   );
 }
 
+// ---------------- ACCOUNT PANEL (profil, sifre degistir, hesap sil) ----------------
+
+function AccountPanel({ token, username, userId, onClose, onAccountDeleted }) {
+  const [tab, setTab] = useState("info"); // info | password | danger
+
+  // sifre degistirme formu
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [pwLoading, setPwLoading] = useState(false);
+  const [pwMessage, setPwMessage] = useState({ text: "", type: "" });
+
+  // hesap silme onayi
+  const [deleteConfirming, setDeleteConfirming] = useState(false);
+  const [deletePassword, setDeletePassword] = useState("");
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [deleteMessage, setDeleteMessage] = useState({ text: "", type: "" });
+
+  const submitPasswordChange = async (e) => {
+    e.preventDefault();
+    setPwMessage({ text: "", type: "" });
+
+    if (newPassword !== confirmPassword) {
+      setPwMessage({ text: "Yeni şifreler birbiriyle uyuşmuyor.", type: "error" });
+      return;
+    }
+    if (newPassword.length < 6) {
+      setPwMessage({ text: "Yeni şifre en az 6 karakter olmalı.", type: "error" });
+      return;
+    }
+
+    setPwLoading(true);
+    try {
+      const res = await apiFetch(`${API_BASE}/api/auth/change-password`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ currentPassword, newPassword }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setPwMessage({ text: data.error || data.message || "Şifre değiştirilemedi.", type: "error" });
+        return;
+      }
+      setPwMessage({ text: data.message || "Şifre güncellendi.", type: "success" });
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+    } catch (err) {
+      setPwMessage({ text: "Sunucuya ulaşılamadı. Backend çalışıyor mu?", type: "error" });
+    } finally {
+      setPwLoading(false);
+    }
+  };
+
+  const submitDeleteAccount = async (e) => {
+    e.preventDefault();
+    setDeleteMessage({ text: "", type: "" });
+    setDeleteLoading(true);
+    try {
+      const res = await apiFetch(`${API_BASE}/api/auth/delete-account`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ password: deletePassword }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setDeleteMessage({ text: data.error || data.message || "Hesap silinemedi.", type: "error" });
+        return;
+      }
+      onAccountDeleted();
+    } catch (err) {
+      setDeleteMessage({ text: "Sunucuya ulaşılamadı. Backend çalışıyor mu?", type: "error" });
+    } finally {
+      setDeleteLoading(false);
+    }
+  };
+
+  const tabs = [
+    { key: "info", label: "Hesap Bilgileri" },
+    { key: "password", label: "Şifre Değiştir" },
+    { key: "danger", label: "Hesap Silme" },
+  ];
+
+  return (
+    <div
+      className="fixed inset-0 flex items-center justify-center p-4"
+      style={{ background: "rgba(0,0,0,0.6)", zIndex: 70 }}
+      onClick={onClose}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="w-full rounded-3xl overflow-hidden"
+        style={{ maxWidth: 440, background: COLORS.card, border: `1px solid ${COLORS.cardBorder}`, boxShadow: "0 40px 90px -30px rgba(0,0,0,0.9)" }}
+      >
+        <div className="flex items-center gap-3 px-6 py-5" style={{ borderBottom: `1px solid ${COLORS.cardBorder}` }}>
+          <span
+            className="flex items-center justify-center rounded-full font-bold text-base shrink-0"
+            style={{ width: 44, height: 44, background: COLORS.yellow, color: "#141414" }}
+          >
+            {username?.[0]?.toUpperCase() || "?"}
+          </span>
+          <div className="flex-1 min-w-0">
+            <div className="font-bold text-sm truncate" style={{ color: COLORS.textMain }}>{username}</div>
+            <div className="text-[11.5px]" style={{ color: COLORS.textMuted }}>Hesap Ayarları</div>
+          </div>
+          <button
+            onClick={onClose}
+            className="rounded-lg flex items-center justify-center shrink-0"
+            style={{ width: 30, height: 30, background: COLORS.inputBg, border: `1px solid ${COLORS.inputBorder}`, color: COLORS.textMuted }}
+          >
+            <svg viewBox="0 0 24 24" fill="none" style={{ width: 15, height: 15 }}>
+              <path d="M6 6L18 18M18 6L6 18" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" />
+            </svg>
+          </button>
+        </div>
+
+        <div className="flex gap-1 px-4 pt-3">
+          {tabs.map((t) => {
+            const isActive = tab === t.key;
+            return (
+              <button
+                key={t.key}
+                onClick={() => setTab(t.key)}
+                className="px-3 py-2 rounded-lg text-[12.5px] font-semibold transition-colors"
+                style={{
+                  background: isActive ? "rgba(253,199,0,0.1)" : "transparent",
+                  color: isActive ? COLORS.yellow : COLORS.textMuted,
+                }}
+              >
+                {t.label}
+              </button>
+            );
+          })}
+        </div>
+
+        <div className="px-6 py-5" style={{ minHeight: 320 }}>
+          {tab === "info" && (
+            <div>
+              <div className="flex justify-between items-center py-3 text-sm">
+                <span style={{ color: COLORS.textMuted }}>Kullanıcı Adı</span>
+                <span className="font-semibold" style={{ color: COLORS.textMain }}>{username}</span>
+              </div>
+            </div>
+          )}
+
+          {tab === "password" && (
+            <form onSubmit={submitPasswordChange}>
+              <Field label="Mevcut Şifre" type="password" placeholder="••••••••" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} required />
+              <Field label="Yeni Şifre" type="password" placeholder="En az 6 karakter" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} required />
+              <Field label="Yeni Şifre (Tekrar)" type="password" placeholder="••••••••" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required />
+              <PrimaryButton type="submit" loading={pwLoading} loadingText="Güncelleniyor...">Şifreyi Güncelle</PrimaryButton>
+              <MessageBox text={pwMessage.text} type={pwMessage.type} />
+            </form>
+          )}
+
+          {tab === "danger" && (
+            <div>
+              <div
+                className="rounded-2xl p-4 mb-4"
+                style={{ background: COLORS.errorBg, border: `1px solid ${COLORS.errorBorder}` }}
+              >
+                <div className="font-bold text-sm mb-1.5" style={{ color: COLORS.errorText }}>Hesabı kalıcı olarak sil</div>
+                <p className="text-[12.5px] leading-relaxed" style={{ color: COLORS.textMuted }}>
+                  Bu işlem geri alınamaz. Cüzdanın, işlem geçmişin ve hesap bilgilerin tamamen silinir.
+                </p>
+              </div>
+
+              {!deleteConfirming ? (
+                <button
+                  onClick={() => setDeleteConfirming(true)}
+                  className="w-full rounded-2xl py-3 font-bold text-sm"
+                  style={{ background: COLORS.errorBg, border: `1px solid ${COLORS.errorBorder}`, color: COLORS.errorText }}
+                >
+                  Hesabımı Sil
+                </button>
+              ) : (
+                <form onSubmit={submitDeleteAccount}>
+                  <Field label="Onaylamak için şifreni gir" type="password" placeholder="••••••••" value={deletePassword} onChange={(e) => setDeletePassword(e.target.value)} required />
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => { setDeleteConfirming(false); setDeletePassword(""); setDeleteMessage({ text: "", type: "" }); }}
+                      className="flex-1 rounded-xl py-3 text-sm font-semibold"
+                      style={{ background: COLORS.inputBg, border: `1px solid ${COLORS.inputBorder}`, color: COLORS.textMain }}
+                    >
+                      Vazgeç
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={deleteLoading}
+                      className="flex-1 rounded-xl py-3 text-sm font-bold"
+                      style={{ background: COLORS.errorText, color: "#1a0000", opacity: deleteLoading ? 0.6 : 1 }}
+                    >
+                      {deleteLoading ? "Siliniyor..." : "Evet, Sil"}
+                    </button>
+                  </div>
+                  <MessageBox text={deleteMessage.text} type={deleteMessage.type} />
+                </form>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ---------------- DASHBOARD ROOT ----------------
 
-function Dashboard({ session, onLogout }) {
+function Dashboard({ session, onLogout, onAccountDeleted }) {
   const { token, username, userId } = session;
 
-  const [view, setView] = useState(() => {
-    return localStorage.getItem("activeView") || "home";
-  });
-  const [selectedCoin, setSelectedCoin] = useState(() => {
-    return localStorage.getItem("selectedCoin") || null;
-  });
+  const [view, setView] = useState("home"); // home | portfolio | history | ai
+  const [selectedCoin, setSelectedCoin] = useState(null);
+  const [accountOpen, setAccountOpen] = useState(false);
 
   const [prices, setPrices] = useState({ BTC: 0, ETH: 0 });
   const [lastPrices, setLastPrices] = useState({ BTC: null, ETH: null });
@@ -971,7 +1208,9 @@ function Dashboard({ session, onLogout }) {
   const [wallet, setWallet] = useState(null);
   const [walletError, setWalletError] = useState("");
 
-  const [trades, setTrades] = useState([]);
+  const [transactions, setTransactions] = useState([]);
+  const [transactionsError, setTransactionsError] = useState("");
+  const [transactionsLoading, setTransactionsLoading] = useState(true);
 
   const loadPrices = useCallback(async () => {
     try {
@@ -984,7 +1223,7 @@ function Dashboard({ session, onLogout }) {
         return { BTC: btc, ETH: eth };
       });
     } catch (err) {
-      // sessizce geç, kart üstünde zaten "-" gösterilir
+      // fiyat çekilemezse sessiz geç
     }
   }, []);
 
@@ -997,7 +1236,7 @@ function Dashboard({ session, onLogout }) {
       const btcData = await btcRes.json();
       const ethData = await ethRes.json();
       setHomeHistory({ BTC: btcData.slice(-30), ETH: ethData.slice(-30) });
-    } catch (err) { }
+    } catch (err) {}
   }, []);
 
   const loadDetailHistory = useCallback(async (symbol) => {
@@ -1017,7 +1256,7 @@ function Dashboard({ session, onLogout }) {
     if (!userId) return;
     setWalletError("");
     try {
-      const res = await fetch(`${API_BASE}/api/wallet/${userId}`, { headers: { Authorization: `Bearer ${token}` } });
+      const res = await apiFetch(`${API_BASE}/api/wallet/${userId}`, { headers: { Authorization: `Bearer ${token}` } });
       const data = await res.json();
       if (!res.ok) {
         setWalletError(data.error || data.message || "Cüzdan bilgisi alınamadı.");
@@ -1029,28 +1268,24 @@ function Dashboard({ session, onLogout }) {
     }
   }, [token, userId]);
 
-  const loadTrades = useCallback(async () => {
+  // islem gecmisini artik backend'den cekiyoruz, sayfa yenilense de kaybolmuyor
+  const loadTransactions = useCallback(async () => {
     if (!userId) return;
+    setTransactionsError("");
     try {
-      const res = await fetch(`${API_BASE}/api/wallet/${userId}/transactions`, { headers: { Authorization: `Bearer ${token}` } });
+      const res = await apiFetch(`${API_BASE}/api/wallet/${userId}/transactions`, { headers: { Authorization: `Bearer ${token}` } });
       const data = await res.json();
-      if (res.ok) {
-        // Backend'den gelen verileri arayüze uyumlu hale getirip state e kaydediyoruz
-        const mapped = data.map(t => ({
-          action: t.transactionType,
-          coin: t.assetName,
-          amount: t.amount,
-          price: t.price,
-          total: t.totalCost,
-          timestamp: t.createdAt
-        }));
-        setTrades(mapped);
+      if (!res.ok) {
+        setTransactionsError(data.error || data.message || "İşlem geçmişi alınamadı.");
+        return;
       }
+      setTransactions(data);
     } catch (err) {
-      console.error("İşlem geçmişi yüklenirken hata oluştu:", err);
+      setTransactionsError("Sunucuya ulaşılamadı. Backend çalışıyor mu?");
+    } finally {
+      setTransactionsLoading(false);
     }
   }, [token, userId]);
-
 
   useEffect(() => {
     loadPrices();
@@ -1059,11 +1294,8 @@ function Dashboard({ session, onLogout }) {
     return () => clearInterval(interval);
   }, [loadPrices, loadHomeHistory]);
 
-
-  useEffect(() => {
-    loadWallet();
-    loadTrades();
-  }, [loadWallet, loadTrades]);
+  useEffect(() => { loadWallet(); }, [loadWallet]);
+  useEffect(() => { loadTransactions(); }, [loadTransactions]);
 
   useEffect(() => {
     if (view === "detail" && selectedCoin) {
@@ -1072,31 +1304,33 @@ function Dashboard({ session, onLogout }) {
   }, [view, selectedCoin, loadDetailHistory]);
 
   const handleInspect = (symbol) => {
-    localStorage.setItem("activeView", "detail");
-    localStorage.setItem("selectedCoin", symbol);
     setSelectedCoin(symbol);
     setView("detail");
   };
 
-  const handleTraded = (trade) => {
-    setTrades((prev) => [trade, ...prev]);
+  const handleTraded = () => {
     loadWallet();
+    loadTransactions();
   };
 
   const handleNavigate = (key) => {
-    localStorage.setItem("activeView", key);
-    localStorage.removeItem("selectedCoin");
     setView(key);
     setSelectedCoin(null);
   };
 
   return (
     <div className="min-h-screen flex" style={pageBg}>
-      <Sidebar active={view === "detail" ? "home" : view} onNavigate={handleNavigate} username={username} onLogout={onLogout} />
+      <Sidebar
+        active={view === "detail" ? "home" : view}
+        onNavigate={handleNavigate}
+        username={username}
+        onLogout={onLogout}
+        onOpenAccount={() => setAccountOpen(true)}
+      />
 
       <div className="flex-1 flex flex-col">
         <MobileNav active={view === "detail" ? "home" : view} onNavigate={handleNavigate} />
-        <div className="flex-1 p-6 md:p-8" style={{ color: COLORS.textMain }}>
+        <div className="flex-1 p-6 md:p-8" style={{ color: COLORS.textMain, minHeight: 640 }}>
           {view === "home" && <HomeView prices={prices} lastPrices={lastPrices} history={homeHistory} onInspect={handleInspect} />}
 
           {view === "detail" && selectedCoin && (
@@ -1108,51 +1342,92 @@ function Dashboard({ session, onLogout }) {
               historyLoading={detailHistoryLoading}
               userId={userId}
               token={token}
-              onBack={() => {
-                localStorage.setItem("activeView", "home");
-                localStorage.removeItem("selectedCoin");
-                setView("home");
-                setSelectedCoin(null);
-              }}
+              onBack={() => { setView("home"); setSelectedCoin(null); }}
               onTraded={handleTraded}
             />
           )}
 
           {view === "portfolio" && <PortfolioView wallet={wallet} walletError={walletError} prices={prices} />}
-          {view === "history" && <HistoryView trades={trades} />}
+          {view === "history" && <HistoryView transactions={transactions} error={transactionsError} loading={transactionsLoading} />}
         </div>
       </div>
 
       <AiWidget token={token} />
+
+      {accountOpen && (
+        <AccountPanel
+          token={token}
+          username={username}
+          userId={userId}
+          onClose={() => setAccountOpen(false)}
+          onAccountDeleted={onAccountDeleted}
+        />
+      )}
     </div>
   );
 }
 
 // ---------------- APP ROOT ----------------
 
+const SESSION_KEY = "copcoin_session";
+
 export default function App() {
-  //sayfa yenilendiğinde tarayıcı hafızasında  kayıtlı oturum var mı diye bakıp onunla başlıyoruz
   const [session, setSession] = useState(() => {
-    const saved = localStorage.getItem("session");
-    return saved ? JSON.parse(saved) : null;
+    try {
+      const saved = sessionStorage.getItem(SESSION_KEY);
+      return saved ? JSON.parse(saved) : null;
+    } catch (e) {
+      return null;
+    }
   });
-  // giriş başarılı olduğunda bilgileri hem React state ine hem de localStorage a yazıyoruz
+  const [expiredNotice, setExpiredNotice] = useState(false);
+
   const handleAuthed = (s) => {
-    localStorage.setItem("session", JSON.stringify(s));
     setSession(s);
+    setExpiredNotice(false);
+    sessionStorage.setItem(SESSION_KEY, JSON.stringify(s));
   };
-  // çıkış yapıldığında verileri temizliyoruz
+
   const handleLogout = async () => {
     if (session?.token) {
       try {
         await fetch(`${API_BASE}/api/auth/logout`, { method: "POST", headers: { Authorization: `Bearer ${session.token}` } });
-      } catch (e) { }
+      } catch (e) {}
     }
-    localStorage.removeItem("session");
-    localStorage.removeItem("activeView");
-    localStorage.removeItem("selectedCoin");
+    sessionStorage.removeItem(SESSION_KEY);
     setSession(null);
   };
-  if (!session) return <AuthScreen onAuthed={handleAuthed} />;
-  return <Dashboard session={session} onLogout={handleLogout} />;
+
+  // hesap silindiginde backend zaten oturumu Redis'ten temizliyor, burada sadece local session'i sifirliyoruz
+  const handleAccountDeleted = () => {
+    sessionStorage.removeItem(SESSION_KEY);
+    setSession(null);
+  };
+
+  // herhangi bir istek 401 donerse (token suresi dolmus/gecersiz) otomatik cikis yapip
+  // kullaniciya net bir uyari gosteriyoruz, "Unauthorized" gibi teknik bir yazi yerine
+  useEffect(() => {
+    sessionExpiredHandler = () => {
+      sessionStorage.removeItem(SESSION_KEY);
+      setSession(null);
+      setExpiredNotice(true);
+    };
+    return () => { sessionExpiredHandler = null; };
+  }, []);
+
+  const numberInputStyle = (
+    <style>{`
+      input[type=number]::-webkit-outer-spin-button,
+      input[type=number]::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+      }
+      input[type=number] {
+        -moz-appearance: textfield;
+      }
+    `}</style>
+  );
+
+  if (!session) return (<>{numberInputStyle}<AuthScreen onAuthed={handleAuthed} expiredNotice={expiredNotice} /></>);
+  return (<>{numberInputStyle}<Dashboard session={session} onLogout={handleLogout} onAccountDeleted={handleAccountDeleted} /></>);
 }
