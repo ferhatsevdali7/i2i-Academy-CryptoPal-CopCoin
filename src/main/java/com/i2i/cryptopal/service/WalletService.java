@@ -2,6 +2,7 @@ package com.i2i.cryptopal.service;
 
 import com.i2i.cryptopal.dto.TradeRequest;
 import com.i2i.cryptopal.dto.TradeResponse;
+import com.i2i.cryptopal.dto.TransactionResponse; // guvenli DTO icin eklendi (Ege)
 import com.i2i.cryptopal.model.Transaction;
 import com.i2i.cryptopal.model.UserWallet;
 import com.i2i.cryptopal.repository.TransactionRepository;
@@ -11,6 +12,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.List; // eklendi (Ege)
+import java.util.stream.Collectors; // eklendi (Ege)
 
 @Service
 public class WalletService {
@@ -152,14 +155,19 @@ public class WalletService {
         );
     }
 
-    /**
-     * Kullanıcının veritabanındaki geçmiş alım/satım işlemlerini getirir.
-     */
-    @org.springframework.transaction.annotation.Transactional(readOnly = true)
-    public java.util.List<Transaction> getTransactionHistory(Long userId) {
-        UserWallet wallet = getWalletByUserId(userId);
-        return transactionRepository.findByUserOrderByCreatedAtDesc(wallet.getUser());
+    @Transactional(readOnly = true)
+    public List<TransactionResponse> getTransactionHistory(Long userId) { //ham Transaction donduruyordu, sifre hash'i sizabiliyordu (Ege)
+        return transactionRepository.findByUser_IdOrderByCreatedAtDesc(userId) // userId ile direkt sorgu (Ege)
+                .stream()
+                .map(tx -> new TransactionResponse( // guvenlik icin ham Transaction yerine DTO'ya donusturuyoruz (Ege)
+                        tx.getId(),
+                        tx.getTransactionType(),
+                        tx.getAssetName(),
+                        tx.getAmount(),
+                        tx.getPrice(),
+                        tx.getTotalCost(),
+                        tx.getCreatedAt()
+                ))
+                .collect(Collectors.toList());
     }
-
-
 }

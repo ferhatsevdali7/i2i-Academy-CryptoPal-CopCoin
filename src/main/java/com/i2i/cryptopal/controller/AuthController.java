@@ -1,5 +1,6 @@
 package com.i2i.cryptopal.controller;
 
+import com.i2i.cryptopal.dto.ChangePasswordRequest;
 import com.i2i.cryptopal.dto.LoginRequest;
 import com.i2i.cryptopal.dto.LoginResponse;
 import com.i2i.cryptopal.dto.RegisterRequest;
@@ -17,6 +18,8 @@ import java.util.Map;
 @RestController  // rest apı denetleyicisi,  metotlardan dönen veriler otomatik json formatında olmalı demek
 @RequestMapping("/api/auth")  // ön ek olıuşturma
 @RequiredArgsConstructor
+// @CrossOrigin(origins = "*") buradaydı, CorsConfig.java'daki merkezi CorsFilter ile
+// cakisip tarayicida CORS hatasi verdigi icin kaldirildi (Ege)
 public class AuthController {
 
     private final UserService userService;
@@ -48,8 +51,8 @@ public class AuthController {
         User user = userService.getUserByUsername(request.getUsername());
 
         LoginResponse response = new LoginResponse(
+                user.getId(), // dashboard uclarinin (wallet/trade) ihtiyac duydugu userId artik burada donuyor (Ege)
                 token,
-                user.getId(), // Giris yapan kullanicinin ID bilgisini ekledim (Ferhat)
                 user.getUsername(),
                 user.getBalance(),
                 "Giriş başarılı. Oturum Redis üzerinde başlatıldı."
@@ -76,6 +79,33 @@ public class AuthController {
         }
 
         return ResponseEntity.ok(Map.of("message", "Çıkış başarılı. Oturum sonlandırıldı."));
+    }
+
+    // Sifre degistirme ucu: kullanici hesap panelinden eski sifresini dogrulayip yenisini belirliyor (Ege)
+    @PostMapping("/change-password")
+    public ResponseEntity<?> changePassword(@Valid @RequestBody ChangePasswordRequest request, HttpServletRequest httpRequest) {
+        Long authenticatedUserId = (Long) httpRequest.getAttribute("authenticatedUserId");
+
+        userService.changePassword(authenticatedUserId, request.getCurrentPassword(), request.getNewPassword());
+
+        return ResponseEntity.ok(Map.of("message", "Sifre basariyla guncellendi."));
+    }
+
+    // Hesap silme ucu: kullanici sifresini tekrar girerek onay veriyor (Ege)
+    @PostMapping("/delete-account")
+    public ResponseEntity<?> deleteAccount(@RequestBody Map<String, String> body, HttpServletRequest httpRequest) {
+        Long authenticatedUserId = (Long) httpRequest.getAttribute("authenticatedUserId");
+        String password = body.get("password");
+
+        userService.deleteAccount(authenticatedUserId, password);
+
+        // hesap silinince Redis'teki oturumu da temizliyoruz, token bosta kalmasin (Ege)
+        String authHeader = httpRequest.getHeader("Authorization");
+        if (authHeader != null && authHeader.toLowerCase().startsWith("bearer ")) {
+            userService.logoutUser(authHeader.substring(7).trim());
+        }
+
+        return ResponseEntity.ok(Map.of("message", "Hesap kalici olarak silindi."));
     }
 
 }

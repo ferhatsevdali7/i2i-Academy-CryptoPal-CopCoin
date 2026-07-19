@@ -240,7 +240,10 @@ function AuthScreen({ onAuthed, expiredNotice }) {
         className="w-full rounded-3xl px-8 pt-10 pb-8"
         style={{ maxWidth: 380, background: COLORS.card, border: `1px solid ${COLORS.cardBorder}`, boxShadow: "0 40px 80px -30px rgba(0,0,0,0.9)" }}
       >
-        <div className="mb-5"><IconBadge /></div>
+        <div className="mb-5 flex items-center justify-center gap-2.5">
+          <img src="/logo-symbol.png" alt="CopCoin" style={{ height: 48, width: "auto" }} />
+          <span className="font-bold text-2xl tracking-tight" style={{ color: COLORS.yellow }}>CopCoin</span>
+        </div>
 
         {isLogin ? (
           <>
@@ -302,9 +305,8 @@ function Sidebar({ active, onNavigate, username, onLogout, onOpenAccount }) {
       className="hidden md:flex flex-col shrink-0"
       style={{ width: 240, background: COLORS.sidebar, borderRight: `1px solid ${COLORS.cardBorder}`, minHeight: "100vh" }}
     >
-      <div className="flex items-center gap-3.5 px-6 py-7">
-        <IconBadge size={48} radius={14} />
-        <span className="font-bold text-xl tracking-tight leading-none" style={{ color: COLORS.textMain }}>CopCoin</span>
+      <div className="flex items-center px-5 py-7">
+        <img src="/logo-dark.png" alt="CopCoin" style={{ height: 46, width: "auto" }} />
       </div>
 
       <nav className="flex-1 px-3 mt-2">
@@ -1389,6 +1391,10 @@ function LoadingScreen() {
       className="fixed inset-0 flex flex-col items-center justify-center"
       style={{ background: "#000000", zIndex: 100 }}
     >
+      <div className="flex items-center gap-2.5 mb-10">
+        <img src="/logo-symbol.png" alt="CopCoin" style={{ height: 40, width: "auto" }} />
+        <span className="font-bold text-xl tracking-tight" style={{ color: COLORS.yellow }}>CopCoin</span>
+      </div>
       <style>{`
         @keyframes copcoin-orbit-spin {
           from { transform: rotate(0deg); }

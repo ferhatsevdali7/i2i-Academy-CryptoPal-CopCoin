@@ -11,8 +11,8 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 public class LoginResponse {
 
+    private Long id; // frontend userId'ye ihtiyac duydugu icin eklendi (Ege)
     private String token;
-    private Long id; // Giris yapan kullanicinin ID'sini donuyoruz (Ferhat)
     private String username;
     private BigDecimal balance;
     private String message;

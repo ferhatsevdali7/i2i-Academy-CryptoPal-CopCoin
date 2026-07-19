@@ -13,4 +13,6 @@ public interface UserWalletRepository extends JpaRepository<UserWallet, Long> {
      * Kullanıcı ID'sine göre veritabanından cüzdanı getirir.
      */
     Optional<UserWallet> findByUserId(Long userId);
+
+    void deleteByUserId(Long userId); // Hesap silinirken cuzdan kaydini da temizlemek icin (Ege)
 }

@@ -2,6 +2,7 @@ package com.i2i.cryptopal.service;
 
 import com.i2i.cryptopal.model.User;
 import com.i2i.cryptopal.model.UserWallet;
+import com.i2i.cryptopal.repository.TransactionRepository;
 import com.i2i.cryptopal.repository.UserRepository;
 import com.i2i.cryptopal.repository.UserWalletRepository;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +25,8 @@ public class UserService {
     // Emir'in veritabanina OneToOne iliskiyle usdt_balance, btc_balance, eth_balance 
     // kolunlarını eklemesi üzerine yeni kadolan kullnıcının cüzdanını otomatik oluşturmak için ekledim
     private final UserWalletRepository userWalletRepository; 
+
+    private final TransactionRepository transactionRepository; // hesap silme sirasinda islem gecmisini de temizlemek icin (Ege)
     
     private final PasswordEncoder passwordEncoder;
     private final StringRedisTemplate redisTemplate; // Redis baglantisi icin ekledim
@@ -101,6 +104,33 @@ public class UserService {
     // KULLANICI CIKIS METODU (redis otorumunu siler )
     public void logoutUser(String token) {
         redisTemplate.delete("session:" + token);
+    }
+
+    @Transactional
+    public void changePassword(Long userId, String currentPassword, String newPassword) { // sifre degistirme: eski sifreyi dogrulayip yenisini hashleyip kaydediyoruz (Ege)
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("Kullanıcı bulunamadı!"));
+
+        if (!passwordEncoder.matches(currentPassword, user.getPassword())) {
+            throw new IllegalArgumentException("Mevcut şifre yanlış!");
+        }
+
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+    }
+
+    @Transactional
+    public void deleteAccount(Long userId, String password) { // hesap silme: sifre onayindan sonra once islemler/cuzdan, sonra kullanici siliniyor (Ege)
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("Kullanıcı bulunamadı!"));
+
+        if (!passwordEncoder.matches(password, user.getPassword())) {
+            throw new IllegalArgumentException("Şifre yanlış! Hesap silinemedi.");
+        }
+
+        transactionRepository.deleteByUser_Id(userId);
+        userWalletRepository.deleteByUserId(userId);
+        userRepository.delete(user);
     }
 
 }

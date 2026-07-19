@@ -1,12 +1,13 @@
 package com.i2i.cryptopal.controller;
 
+import com.i2i.cryptopal.dto.TransactionResponse; // guvenli DTO icin eklendi (Ege)
 import com.i2i.cryptopal.model.UserWallet;
-import com.i2i.cryptopal.model.Transaction;
 import com.i2i.cryptopal.service.WalletService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import jakarta.servlet.http.HttpServletRequest;  // bu sınıfı ekledim  (F)
+import java.util.List; // eklendi (Ege)
 import java.util.Map;      // bu sınıfı ekledim (F)
 import java.math.BigDecimal;
 
@@ -70,8 +71,8 @@ public class WalletController {
             return ResponseEntity.status(403).body(Map.of("error", "Bu işlem geçmişine erişim yetkiniz yok!"));
         }
 
-        java.util.List<Transaction> history = walletService.getTransactionHistory(userId);
-        return ResponseEntity.ok(history);
+        List<TransactionResponse> transactions = walletService.getTransactionHistory(userId); //sifre sizmasin diye TransactionResponse DTO donduruyoruz (Ege)
+        return ResponseEntity.ok(transactions);
     }
 
 }
