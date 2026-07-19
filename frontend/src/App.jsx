@@ -1070,7 +1070,7 @@ function AccountPanel({ token, username, userId, onClose, onAccountDeleted }) {
   const tabs = [
     { key: "info", label: "Hesap Bilgileri" },
     { key: "password", label: "Şifre Değiştir" },
-    { key: "danger", label: "Hesap Silme" },
+    { key: "danger", label: "Tehlikeli Bölge" },
   ];
 
   return (
