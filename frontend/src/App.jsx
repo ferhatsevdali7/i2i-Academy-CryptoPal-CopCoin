@@ -1381,7 +1381,7 @@ function HistoryView({ transactions, error, loading, lang }) {
 }
 
 // COPCOIN AI 
-function AiWidget({ token, open, onOpenChange, lang }) {
+function AiWidget({ token, open, onOpenChange, lang, theme }) {
   const [bubbleDismissed, setBubbleDismissed] = useState(false);
   const [aiLog, setAiLog] = useState([]);
   const [aiQuestion, setAiQuestion] = useState("");
@@ -2183,7 +2183,7 @@ function Dashboard({ session, onLogout, onAccountDeleted, theme, setTheme, lang,
         </div>
       </div>
 
-      <AiWidget token={token} open={aiOpen} onOpenChange={setAiOpen} lang={lang} />
+      <AiWidget token={token} open={aiOpen} onOpenChange={setAiOpen} lang={lang} theme={theme} />
 
       {accountOpen && (
         <AccountPanel
