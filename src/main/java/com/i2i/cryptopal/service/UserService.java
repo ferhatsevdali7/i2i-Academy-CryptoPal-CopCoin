@@ -64,6 +64,17 @@ public class UserService {
         wallet.setUsdtBalance(startingBalance); // Baslangic nakitini cuzdanin usdt balance alanina da yaziyoruz.
         wallet.setBtcBalance(BigDecimal.ZERO);
         wallet.setEthBalance(BigDecimal.ZERO);
+        
+        // Null hatasını (not-null constraint) önlemek için yeni eklenen tüm coinlerin bakiyeleri 0 olarak başlatılıyor (Ege)
+        wallet.setSolBalance(BigDecimal.ZERO);
+        wallet.setAdaBalance(BigDecimal.ZERO);
+        wallet.setAvaxBalance(BigDecimal.ZERO);
+        wallet.setDogeBalance(BigDecimal.ZERO);
+        wallet.setDotBalance(BigDecimal.ZERO);
+        wallet.setLinkBalance(BigDecimal.ZERO);
+        wallet.setShibBalance(BigDecimal.ZERO);
+        wallet.setXrpBalance(BigDecimal.ZERO);
+        
         userWalletRepository.save(wallet);
 
         return savedUser;

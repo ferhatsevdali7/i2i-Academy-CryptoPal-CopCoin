@@ -176,14 +176,14 @@ const t = (key, lang) => {
 const COINS = [
   { symbol: "BTC", name: "Bitcoin", badgeBg: "#f7931a" },
   { symbol: "ETH", name: "Ethereum", badgeBg: "#8a92b2" },
-  { symbol: "SOL", name: "Solana", badgeBg: "#800080" },      // Yeni eklenen Solana (Ferhat)
-  { symbol: "DOGE", name: "Dogecoin", badgeBg: "#c2a633" },   // Yeni eklenen Dogecoin (Ferhat)
-  { symbol: "ADA", name: "Cardano", badgeBg: "#0033ad" },     // Yeni eklenen Cardano (Ferhat)
-  { symbol: "XRP", name: "Ripple", badgeBg: "#23292f" },      // Yeni eklenen Ripple (Ferhat)
-  { symbol: "DOT", name: "Polkadot", badgeBg: "#e6007a" },    // Yeni eklenen Polkadot (Ferhat)
-  { symbol: "AVAX", name: "Avalanche", badgeBg: "#e84142" },  // Yeni eklenen Avalanche (Ferhat)
-  { symbol: "LINK", name: "Chainlink", badgeBg: "#2a5ada" },  // Yeni eklenen Chainlink (Ferhat)
-  { symbol: "SHIB", name: "Shiba Inu", badgeBg: "#ffaa00" },  // Yeni eklenen Shiba Inu (Ferhat)
+  { symbol: "SOL", name: "Solana", badgeBg: "#800080" },
+  { symbol: "DOGE", name: "Dogecoin", badgeBg: "#c2a633" },
+  { symbol: "ADA", name: "Cardano", badgeBg: "#0033ad" },
+  { symbol: "XRP", name: "Ripple", badgeBg: "#23292f" },
+  { symbol: "DOT", name: "Polkadot", badgeBg: "#e6007a" },
+  { symbol: "AVAX", name: "Avalanche", badgeBg: "#e84142" },
+  { symbol: "LINK", name: "Chainlink", badgeBg: "#2a5ada" },
+  { symbol: "SHIB", name: "Shiba Inu", badgeBg: "#ffaa00" },
 ];
 
 //SHARED UI 
@@ -313,7 +313,7 @@ function Card({ title, className = "", children, right = null, height = null }) 
           {right}
         </div>
       )}
-      <div style={height ? { overflowY: "auto", overflowX: "hidden", flex: 1, minHeight: 0 } : { overflowX: "hidden" }}>
+      <div style={height ? { flex: 1, minHeight: 0 } : {}}>
         {children}
       </div>
     </div>
@@ -350,7 +350,7 @@ function AuthScreen({ onAuthed, expiredNotice, lang, setLang, theme, setTheme })
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),
-        credentials: "include", // cookie'lerin alinabilmesi icin gerekli
+        credentials: "include",
       });
       const data = await res.json();
 
@@ -380,7 +380,6 @@ function AuthScreen({ onAuthed, expiredNotice, lang, setLang, theme, setTheme })
 
   return (
     <div className="min-h-screen flex items-center justify-center p-6 relative" style={pageBg}>
-      {/* Dil ve Tema Seçeneği Butonları (TR/EN ve Açık/Koyu) (Ferhat) */}
       <div className="absolute top-6 right-6 flex gap-2">
         <button
           onClick={() => setLang(lang === "TR" ? "EN" : "TR")}
@@ -512,7 +511,6 @@ function Sidebar({ active, onNavigate, username, onLogout, onOpenAccount, lang }
       </nav>
 
       <div className="px-4 pb-5 pt-3" style={{ borderTop: `1px solid ${COLORS.cardBorder}` }}>
-        {/* Canli Fiyat Senkronizasyon Gostergesi (Ferhat) */}
         <div className="flex items-center gap-2 px-2.5 py-1.5 mb-2 rounded-lg text-[10.5px] font-semibold" style={{ background: "rgba(74,222,128,0.06)", border: "1px solid rgba(74,222,128,0.15)", color: COLORS.successText }}>
           <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: COLORS.successText, boxShadow: `0 0 8px ${COLORS.successText}`, animation: "copcoin-dot-pulse 1.5s ease-in-out infinite" }} />
           <span>{lang === "TR" ? "Canlı • Fiyatlar 15s'de bir güncelleniyor" : "Live • Prices sync every 15s"}</span>
@@ -574,8 +572,6 @@ function MobileNav({ active, onNavigate, lang }) {
   );
 }
 
-// listlenmiş satırlar-
-
 function MiniSparkline({ points, color }) {
   if (!points || points.length < 2) {
     return <div style={{ width: 90, height: 32 }} />;
@@ -610,18 +606,19 @@ function HomeView({ prices, lastPrices, history, onInspect, coins = COINS, lang 
   }
 
   return (
-    <div className="max-w-[1000px] w-full mx-auto">
+    <div className="max-w-[1150px] w-full mx-auto">
       <h1 className="text-2xl font-bold mb-1" style={{ color: COLORS.textMain, letterSpacing: "-0.02em" }}>{t("marketTitle", lang)}</h1>
       <p className="text-sm mb-6" style={{ color: COLORS.textMuted }}>{t("marketDesc", lang)}</p>
 
-      <Card height={480}>
-        <div className="overflow-y-auto pr-1 h-full" style={{ maxHeight: "420px" }}> {/* Kaydırma alanı ekledik (Ferhat) */}
+      {/* Sabit yükseklik ve içeride kaydırma alanı düzeltildi */}
+      <Card height={540}>
+        <div className="overflow-y-auto overflow-x-hidden h-full -mr-5 pr-3 max-h-[440px]">
           {coins.map((coin, i) => {
             const change = priceChange(coin.symbol);
             return (
               <div
                 key={coin.symbol}
-                onClick={() => onInspect(coin.symbol)} // tum satir bu coin'e ozel tiklanabilir (Ege)
+                onClick={() => onInspect(coin.symbol)}
                 className="flex items-center justify-between py-4 px-2 -mx-2 gap-4 flex-wrap rounded-xl cursor-pointer transition-all duration-150 active:scale-[0.99]"
                 style={{ borderBottom: i < coins.length - 1 ? `1px solid ${COLORS.cardBorder}` : "none" }}
                 onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.03)"; }}
@@ -647,7 +644,7 @@ function HomeView({ prices, lastPrices, history, onInspect, coins = COINS, lang 
                 </div>
 
                 <button
-                  onClick={(e) => { e.stopPropagation(); onInspect(coin.symbol); }} // satir zaten tiklanabilir oldugu icin cift tetiklenmesin diye durduruluyor (Ege)
+                  onClick={(e) => { e.stopPropagation(); onInspect(coin.symbol); }}
                   className="rounded-xl px-4 py-2.5 text-[13px] font-bold transition-all duration-150 active:scale-[0.95] shrink-0"
                   style={{ background: COLORS.inputBg, border: `1px solid ${COLORS.inputBorder}`, color: COLORS.textMain }}
                   onMouseEnter={(e) => { e.currentTarget.style.borderColor = COLORS.yellow; e.currentTarget.style.color = COLORS.yellow; }}
@@ -663,8 +660,6 @@ function HomeView({ prices, lastPrices, history, onInspect, coins = COINS, lang 
     </div>
   );
 }
-
-// coin detay al sat
 
 function LineChart({ points, mainSymbol, compareList = [], compareData = {}, lang }) {
   const [highlightedSymbol, setHighlightedSymbol] = useState(null);
@@ -693,7 +688,6 @@ function LineChart({ points, mainSymbol, compareList = [], compareData = {}, lan
   const w = 700, h = 200, pad = 12;
   const step = (w - pad * 2) / (mainPrices.length - 1);
 
-  // Karsilastirma aktif degilse eski fiyata dayali cizim aynen korunur (Tooltip dahil edilerek)
   if (!compareList || compareList.length === 0) {
     const min = Math.min(...mainPrices);
     const max = Math.max(...mainPrices);
@@ -717,8 +711,6 @@ function LineChart({ points, mainSymbol, compareList = [], compareData = {}, lan
           </defs>
           <path d={areaPath} fill="url(#chartFadeSingle)" stroke="none" />
           <path d={linePath} fill="none" stroke={lineColor} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
-
-          {/* Tooltip trigger circles */}
           {coords.map(([cx, cy], idx) => (
             <circle
               key={idx}
@@ -740,14 +732,12 @@ function LineChart({ points, mainSymbol, compareList = [], compareData = {}, lan
           ))}
         </svg>
 
-        {/* X Ekseni Zaman Ticks */}
         <div className="flex justify-between items-center text-[10px] px-2.5 mt-0.5" style={{ color: COLORS.textMuted }}>
           <span>{formatTime(points[0]?.createdAt)}</span>
           <span>{formatTime(points[Math.floor(points.length / 2)]?.createdAt)}</span>
           <span>{formatTime(points[points.length - 1]?.createdAt)}</span>
         </div>
 
-        {/* Tooltip Box */}
         {hoveredPoint && (
           <div
             className="absolute pointer-events-none rounded-xl p-2.5 text-[11px] border"
@@ -776,7 +766,6 @@ function LineChart({ points, mainSymbol, compareList = [], compareData = {}, lan
     );
   }
 
-  // --- Karsilastirma Modu (Yuzdesel Normalizasyon) ---
   const firstMainPrice = mainPrices[0] || 1;
   const mainPcts = mainPrices.map((p) => ((p - firstMainPrice) / firstMainPrice) * 100);
 
@@ -812,7 +801,6 @@ function LineChart({ points, mainSymbol, compareList = [], compareData = {}, lan
   return (
     <div className="flex flex-col gap-3" style={{ position: "relative" }}>
       <svg viewBox={`0 0 ${w} ${h}`} style={{ width: "100%", height: 220 }} preserveAspectRatio="none">
-        {/* Referans sifir cizgisi */}
         {minPct < 0 && maxPct > 0 && (() => {
           const zeroY = h - pad - ((0 - minPct) / rangePct) * (h - pad * 2);
           return (
@@ -828,7 +816,6 @@ function LineChart({ points, mainSymbol, compareList = [], compareData = {}, lan
           );
         })()}
 
-        {/* Curves drawing with highlights and fades */}
         {seriesData.map((series) => {
           const coords = series.pcts.map((pct, i) => [
             pad + i * step,
@@ -855,7 +842,6 @@ function LineChart({ points, mainSymbol, compareList = [], compareData = {}, lan
           );
         })}
 
-        {/* Hover detection overlay circles across all curves */}
         {seriesData.map((series) => {
           const coords = series.pcts.map((pct, i) => [
             pad + i * step,
@@ -865,7 +851,7 @@ function LineChart({ points, mainSymbol, compareList = [], compareData = {}, lan
           const isHighlighted = highlightedSymbol === series.symbol;
           const isAnyHighlighted = highlightedSymbol !== null;
           const isMuted = isAnyHighlighted && !isHighlighted;
-          if (isMuted) return null; // mute triggers for other paths to avoid clutter
+          if (isMuted) return null;
 
           return coords.map(([cx, cy], idx) => {
             const originalPoint = (series.symbol === mainSymbol ? points : compareData[series.symbol])[idx];
@@ -893,14 +879,12 @@ function LineChart({ points, mainSymbol, compareList = [], compareData = {}, lan
         })}
       </svg>
 
-      {/* X Ekseni Zaman Ticks */}
       <div className="flex justify-between items-center text-[10px] px-2.5 mt-0.5" style={{ color: COLORS.textMuted }}>
         <span>{formatTime(points[0]?.createdAt)}</span>
         <span>{formatTime(points[Math.floor(points.length / 2)]?.createdAt)}</span>
         <span>{formatTime(points[points.length - 1]?.createdAt)}</span>
       </div>
 
-      {/* Legend Gostergeleri (Hover Highlight Entegrasyonlu) */}
       <div className="flex flex-wrap items-center justify-center gap-3 mt-1">
         {seriesData.map((series) => {
           const isHighlighted = highlightedSymbol === series.symbol;
@@ -927,14 +911,12 @@ function LineChart({ points, mainSymbol, compareList = [], compareData = {}, lan
         })}
       </div>
 
-      {/* Referans Dipnot */}
       <div className="text-[10px] italic text-center mt-1" style={{ color: COLORS.textMuted }}>
         {lang === "TR" 
           ? `* Yüzdeler, grafiğin başlangıç noktası olan ${formatTime(points[0]?.createdAt)} fiyatı referans alınarak hesaplanmıştır.`
           : `* Percentages are calculated relative to the starting price at ${formatTime(points[0]?.createdAt)}.`}
       </div>
 
-      {/* Tooltip Box */}
       {hoveredPoint && (
         <div
           className="absolute pointer-events-none rounded-xl p-2.5 text-[11px] border"
@@ -977,7 +959,6 @@ function CoinDetailView({ coin, price, lastPrice, history, historyLoading, userI
   const [tradeMessage, setTradeMessage] = useState({ text: "", type: "" });
   const [timeframe, setTimeframe] = useState("15m");
 
-  // Grafik Kiyaslama Modulu (Ferhat)
   const [compareList, setCompareList] = useState([]);
   const [compareData, setCompareData] = useState({});
   const [compareOpen, setCompareOpen] = useState(false);
@@ -990,7 +971,7 @@ function CoinDetailView({ coin, price, lastPrice, history, historyLoading, userI
         try {
           const res = await fetch(`${API_BASE}/api/market/history?asset=${sym}`);
           const data = await res.json();
-          setCompareData((prev) => ({ ...prev, [sym]: data })); // Tam veri, dilimleme render'da yapılıyor (Ferhat)
+          setCompareData((prev) => ({ ...prev, [sym]: data }));
         } catch (e) {
           console.error(e);
         }
@@ -1123,7 +1104,7 @@ function CoinDetailView({ coin, price, lastPrice, history, historyLoading, userI
   );
 
   return (
-    <div className="max-w-[1000px] w-full mx-auto">
+    <div className="max-w-[1150px] w-full mx-auto">
       <button
         onClick={onBack}
         className="flex items-center gap-1.5 text-sm font-medium mb-5"
@@ -1168,7 +1149,7 @@ function CoinDetailView({ coin, price, lastPrice, history, historyLoading, userI
       </div>
 
       <div className="grid grid-cols-12 gap-5">
-        <Card title={t("priceChart", lang)} className="col-span-12 lg:col-span-7" height={480} right={compareDropdown}>
+        <Card title={t("priceChart", lang)} className="col-span-12 lg:col-span-7" height={540} right={compareDropdown}>
           {historyLoading ? (
             <div className="flex items-center justify-center gap-2" style={{ height: 220, color: COLORS.textMuted, fontSize: 13 }}>
               <Spinner /> {t("loading", lang)}
@@ -1194,7 +1175,7 @@ function CoinDetailView({ coin, price, lastPrice, history, historyLoading, userI
           )}
         </Card>
 
-        <Card title={`${coin} ${action === "BUY" ? (lang === "TR" ? "Al" : "Buy") : (lang === "TR" ? "Sat" : "Sell")}`} className="col-span-12 lg:col-span-5" height={480}>
+        <Card title={`${coin} ${action === "BUY" ? (lang === "TR" ? "Al" : "Buy") : (lang === "TR" ? "Sat" : "Sell")}`} className="col-span-12 lg:col-span-5" height={540}>
           <form onSubmit={submitTrade}>
             <div className="flex gap-2 mb-4">
               {["BUY", "SELL"].map((a) => {
@@ -1279,7 +1260,6 @@ function CoinDetailView({ coin, price, lastPrice, history, historyLoading, userI
 function PortfolioView({ wallet, walletError, prices, coins = COINS, lang }) {
   const usdt = wallet ? parseFloat(wallet.usdtBalance || 0) : 0;
   
-  // Dynamic portföy toplam değeri hesaplama (Ferhat)
   let totalCryptoValue = 0;
   if (wallet && prices) {
     COINS.forEach(coin => {
@@ -1291,7 +1271,6 @@ function PortfolioView({ wallet, walletError, prices, coins = COINS, lang }) {
   }
   const totalValue = usdt + totalCryptoValue;
 
-  // Dynamic portföy listesi oluşturma (Ferhat)
   const rows = [
     { label: "USDT (Nakit)", badge: <AssetBadge label="$" bg={COLORS.yellow} />, qty: fmtUsd(usdt), val: null }
   ];
@@ -1313,15 +1292,16 @@ function PortfolioView({ wallet, walletError, prices, coins = COINS, lang }) {
   }
 
   return (
-    <div className="max-w-[1000px] w-full mx-auto">
+    <div className="max-w-[1150px] w-full mx-auto">
       <h1 className="text-2xl font-bold mb-1" style={{ color: COLORS.textMain, letterSpacing: "-0.02em" }}>{t("portfolioTitle", lang)}</h1>
       <p className="text-sm mb-6" style={{ color: COLORS.textMuted }}>{t("portfolioDesc", lang)}</p>
 
-      <Card height={650}> {/* Card yüksekliğini 10 coin sığsın diye biraz artırdık (Ferhat) */}
+      {/* Ortak sabit yükseklik ve içeride kaydırma alanı düzeltildi */}
+      <Card height={540}>
         <div className="text-3xl font-bold mb-1" style={{ letterSpacing: "-0.02em", color: COLORS.textMain }}>{fmtUsd(totalValue)}</div>
         <div className="text-[13px] mb-5" style={{ color: COLORS.textMuted }}>{t("totalValue", lang)}</div>
 
-        <div className="overflow-y-auto pr-1" style={{ maxHeight: "480px" }}> {/* Kaydırma alanı ekledik (Ferhat) */}
+        <div className="overflow-y-auto overflow-x-hidden h-full -mr-5 pr-3 max-h-[380px]">
           {rows.map((row, i, arr) => (
             <div
               key={row.label}
@@ -1346,11 +1326,11 @@ function PortfolioView({ wallet, walletError, prices, coins = COINS, lang }) {
 
 function HistoryView({ transactions, error, loading, lang }) {
   return (
-    <div className="max-w-[1000px] w-full mx-auto">
+    <div className="max-w-[1150px] w-full mx-auto">
       <h1 className="text-2xl font-bold mb-1" style={{ color: COLORS.textMain, letterSpacing: "-0.02em" }}>{t("historyTitle", lang)}</h1>
       <p className="text-sm mb-6" style={{ color: COLORS.textMuted }}>{t("historyDesc", lang)}</p>
 
-      <Card height={480}>
+      <Card height={540}>
         {loading ? (
           <div className="flex items-center justify-center gap-2 py-8" style={{ color: COLORS.textMuted, fontSize: 13 }}>
             <Spinner /> {t("loading", lang)}
@@ -1362,7 +1342,7 @@ function HistoryView({ transactions, error, loading, lang }) {
             {t("noTransactions", lang)}
           </div>
         ) : (
-          <div className="overflow-y-auto pr-1 h-full" style={{ maxHeight: "420px" }}> {/* Kaydırma alanı ekledik (Ferhat) */}
+          <div className="overflow-y-auto overflow-x-hidden h-full -mr-5 pr-3 max-h-[440px]">
             {transactions.map((tItem, i) => {
               const isBuy = tItem.transactionType === "BUY";
               return (
@@ -1748,7 +1728,7 @@ function AccountPanel({ token, username, userId, onClose, onAccountDeleted, lang
              const cashBalance = wallet ? parseFloat(wallet.usdtBalance || 0) : 0;
              const totalCryptoValue = ownedAssets.reduce((sum, asset) => sum + asset.value, 0);
              const totalUsdValue = totalCryptoValue + cashBalance;
- 
+
              return (
                <div className="flex flex-col gap-4">
                  <div className="flex justify-between items-center py-2 text-sm border-b" style={{ borderColor: COLORS.cardBorder }}>
@@ -1774,7 +1754,7 @@ function AccountPanel({ token, username, userId, onClose, onAccountDeleted, lang
                      {fmtUsd(totalCryptoValue)}
                    </span>
                  </div>
- 
+
                  <div className="mt-1">
                    <div className="text-[11.5px] font-semibold uppercase tracking-wider mb-2" style={{ color: COLORS.textMuted }}>
                      {lang === "TR" ? "Cüzdan Detayları" : "Wallet Details"}
@@ -1880,7 +1860,7 @@ function AccountPanel({ token, username, userId, onClose, onAccountDeleted, lang
 
 // DASHBOARD ROOT 
 
-function Header({ view, searchQuery, setSearchQuery, theme, setTheme, lang, setLang }) {
+function Header({ view, searchQuery, setSearchQuery, theme, setTheme, lang, setLang, triggerTransition }) {
   const getTitleKey = () => {
     if (view === "home") return "marketTitle";
     if (view === "portfolio") return "portfolioTitle";
@@ -1901,7 +1881,6 @@ function Header({ view, searchQuery, setSearchQuery, theme, setTheme, lang, setL
       </div>
 
       <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
-        {/* Arama Kutusu (Ferhat) */}
         {view !== "detail" && (
           <div className="relative w-full sm:w-[220px]">
             <input
@@ -1932,18 +1911,16 @@ function Header({ view, searchQuery, setSearchQuery, theme, setTheme, lang, setL
           </div>
         )}
 
-        {/* Dil Seçeneği (Ferhat) */}
         <button
-          onClick={() => setLang(lang === "TR" ? "EN" : "TR")}
+          onClick={() => triggerTransition(() => setLang(lang === "TR" ? "EN" : "TR"))}
           className="rounded-xl px-3 py-1.5 text-xs font-bold transition-all duration-150 active:scale-[0.95]"
           style={{ background: COLORS.inputBg, border: `1px solid ${COLORS.inputBorder}`, color: COLORS.textMain }}
         >
           {lang === "TR" ? "EN" : "TR"}
         </button>
 
-        {/* Tema Seçeneği (Ferhat) */}
         <button
-          onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+          onClick={() => triggerTransition(() => setTheme(theme === "dark" ? "light" : "dark"))}
           className="rounded-xl px-3 py-1.5 text-xs font-bold transition-all duration-150 active:scale-[0.95] flex items-center justify-center"
           style={{ background: COLORS.inputBg, border: `1px solid ${COLORS.inputBorder}`, color: COLORS.textMain }}
         >
@@ -1970,20 +1947,19 @@ function Header({ view, searchQuery, setSearchQuery, theme, setTheme, lang, setL
   );
 }
 
-function Dashboard({ session, onLogout, onAccountDeleted, theme, setTheme, lang, setLang }) {
+function Dashboard({ session, onLogout, onAccountDeleted, theme, setTheme, lang, setLang, triggerTransition }) {
   const { token, username, userId } = session;
 
   const [view, setView] = useState(() => {
-    return sessionStorage.getItem("copcoin_view") || "home"; // F5 yenilemesinde hangi sayfada kaldiysak oradan acilsin (Ferhat)
+    return sessionStorage.getItem("copcoin_view") || "home"; 
   });
   const [selectedCoin, setSelectedCoin] = useState(() => {
-    return sessionStorage.getItem("copcoin_selected_coin") || null; // F5 atinca secili coini korumak icin (Ferhat)
+    return sessionStorage.getItem("copcoin_selected_coin") || null; 
   });
   const [accountOpen, setAccountOpen] = useState(false);
-  const [aiOpen, setAiOpen] = useState(false); // AI paneli acikken icerigi gercek bos alana gore ortalamak icin (Ege)
-  const [searchQuery, setSearchQuery] = useState(""); // Arama filtresi (Ferhat)
+  const [aiOpen, setAiOpen] = useState(false); 
+  const [searchQuery, setSearchQuery] = useState(""); 
 
-  // Fiyat ve grafik trendi durumlarını COINS listesinden dinamik üretiyoruz (Ferhat)
   const [prices, setPrices] = useState(() => {
     const p = {};
     COINS.forEach(c => p[c.symbol] = 0);
@@ -2010,7 +1986,6 @@ function Dashboard({ session, onLogout, onAccountDeleted, theme, setTheme, lang,
   const [transactionsError, setTransactionsError] = useState("");
   const [transactionsLoading, setTransactionsLoading] = useState(true);
 
-  // F5 yenilemesinde sayfa durumunu kaydetmek için useEffect (Ferhat)
   useEffect(() => {
     sessionStorage.setItem("copcoin_view", view);
     if (selectedCoin) {
@@ -2035,13 +2010,12 @@ function Dashboard({ session, onLogout, onAccountDeleted, theme, setTheme, lang,
         return newPrices;
       });
     } catch (err) {
-      // fiyat çekilemezse sessiz geç
+      
     }
   }, []);
 
   const loadHomeHistory = useCallback(async () => {
     try {
-      // Tüm coinlerin grafik geçmişini paralel şekilde yüklüyoruz (Ferhat)
       const promises = COINS.map(c => 
         fetch(`${API_BASE}/api/market/history?asset=${c.symbol}`).then(r => r.json())
       );
@@ -2060,7 +2034,7 @@ function Dashboard({ session, onLogout, onAccountDeleted, theme, setTheme, lang,
     try {
       const res = await fetch(`${API_BASE}/api/market/history?asset=${symbol}`);
       const data = await res.json();
-      setDetailHistory(data); // Tüm veriyi sakla, dilimleme CoinDetailView içinde timeframe'e göre yapılıyor (Ferhat)
+      setDetailHistory(data); 
     } catch (err) {
       setDetailHistory([]);
     } finally {
@@ -2084,7 +2058,6 @@ function Dashboard({ session, onLogout, onAccountDeleted, theme, setTheme, lang,
     }
   }, [token, userId]);
 
-  // islem gecmisini artik backend'den cekiyoruz, sayfa yenilense de kaybolmuyor
   const loadTransactions = useCallback(async () => {
     if (!userId) return;
     setTransactionsError("");
@@ -2132,10 +2105,9 @@ function Dashboard({ session, onLogout, onAccountDeleted, theme, setTheme, lang,
   const handleNavigate = (key) => {
     setView(key);
     setSelectedCoin(null);
-    setSearchQuery(""); // Sayfa degisince aramayi sifirla (Ferhat)
+    setSearchQuery(""); 
   };
 
-  // Dinamik arama filtreleme mantiklari (Ferhat)
   const filteredCoins = COINS.filter(coin => 
     coin.symbol.toLowerCase().includes(searchQuery.toLowerCase()) || 
     coin.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -2173,6 +2145,7 @@ function Dashboard({ session, onLogout, onAccountDeleted, theme, setTheme, lang,
           setTheme={setTheme}
           lang={lang}
           setLang={setLang}
+          triggerTransition={triggerTransition}
         />
 
         <div
@@ -2254,7 +2227,6 @@ function LoadingScreen() {
         }
       `}</style>
       <div style={{ position: "relative", width: 64, height: 64, animation: "copcoin-orbit-spin 1s linear infinite" }}>
-        {/* iki top, birbirinin tam karsisinda, ortak eksen etrafinda donuyor (Ege) */}
         <span
           style={{
             position: "absolute", top: 0, left: "50%", width: 14, height: 14, marginLeft: -7,
@@ -2289,9 +2261,9 @@ export default function App() {
     }
   });
   const [expiredNotice, setExpiredNotice] = useState(false);
-  const [showLoadingScreen, setShowLoadingScreen] = useState(false); //  yukleniyor ekrani (Ege)
+  const [showLoadingScreen, setShowLoadingScreen] = useState(false);
 
-  // Tema ve dil secenekleri (Ferhat)
+  // Tema dan dil secenekleri
   const [theme, setTheme] = useState(() => {
     const saved = localStorage.getItem("copcoin_theme");
     return (saved === "light" || saved === "dark") ? saved : "dark";
@@ -2305,7 +2277,7 @@ export default function App() {
     return "TR";
   });
 
-  // Tema CSS degiskenleri guncelleme effekti (Ferhat)
+  // Tema CSS degiskenleri guncelleme effekti
   useEffect(() => {
     localStorage.setItem("copcoin_theme", theme);
     const root = document.documentElement;
@@ -2346,17 +2318,26 @@ export default function App() {
     }
   }, [theme]);
 
-  // Dil secimi kaydetme effekti (Ferhat)
+  // Dil secimi kaydetme effekti
   useEffect(() => {
     localStorage.setItem("copcoin_lang", lang);
   }, [lang]);
+
+  // Tema veya Dil değiştiğinde pürüzsüz geçiş için yükleme ekranını tetikleyen yardımcı fonksiyon
+  const triggerTransition = (actionCallback) => {
+    setShowLoadingScreen(true);
+    actionCallback();
+    setTimeout(() => {
+      setShowLoadingScreen(false);
+    }, 1200); 
+  };
 
   const handleAuthed = (s) => {
     setSession(s);
     setExpiredNotice(false);
     sessionStorage.setItem(SESSION_KEY, JSON.stringify(s));
     setShowLoadingScreen(true);
-    setTimeout(() => setShowLoadingScreen(false), 3000); //  dashboard acilir (Ege)
+    setTimeout(() => setShowLoadingScreen(false), 2000); 
   };
 
   const handleLogout = async () => {
@@ -2364,8 +2345,8 @@ export default function App() {
       await apiFetch(`${API_BASE}/api/auth/logout`, { method: "POST" });
     } catch (e) {}
     sessionStorage.removeItem(SESSION_KEY);
-    sessionStorage.removeItem("copcoin_view");          // oturum kapatınca view temizlensin (Ferhat)
-    sessionStorage.removeItem("copcoin_selected_coin");  // oturum kapatınca coin temizlensin (Ferhat)
+    sessionStorage.removeItem("copcoin_view");          
+    sessionStorage.removeItem("copcoin_selected_coin");  
     setSession(null);
   };
 
@@ -2397,10 +2378,9 @@ export default function App() {
         0%, 100% { opacity: 0.45; transform: scale(0.85); }
         50% { opacity: 1; transform: scale(1.1); }
       }
-      /* Custom Premium Scrollbar (Ferhat) */
       ::-webkit-scrollbar {
         width: 6px;
-        height: 6px;
+        height: 0px; 
       }
       ::-webkit-scrollbar-track {
         background: transparent;
@@ -2415,7 +2395,7 @@ export default function App() {
     `}</style>
   );
 
-  if (!session) return (<>{numberInputStyle}<AuthScreen onAuthed={handleAuthed} expiredNotice={expiredNotice} lang={lang} setLang={setLang} theme={theme} setTheme={setTheme} /></>);
+  if (!session) return (<>{numberInputStyle}{showLoadingScreen && <LoadingScreen />}<AuthScreen onAuthed={handleAuthed} expiredNotice={expiredNotice} lang={lang} setLang={(l) => triggerTransition(() => setLang(l))} theme={theme} setTheme={(th) => triggerTransition(() => setTheme(th))} /></>);
   if (showLoadingScreen) return (<>{numberInputStyle}<LoadingScreen /></>);
   return (
     <>
@@ -2428,6 +2408,7 @@ export default function App() {
         setTheme={setTheme}
         lang={lang}
         setLang={setLang}
+        triggerTransition={triggerTransition}
       />
     </>
   );
