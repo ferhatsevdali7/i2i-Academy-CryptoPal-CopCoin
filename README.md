@@ -10,9 +10,10 @@
   <img src="https://img.shields.io/badge/Vercel-Live-000000?style=for-the-badge&logo=vercel&logoColor=white" alt="Vercel" />
   <img src="https://img.shields.io/badge/Render-Live-46E3B7?style=for-the-badge&logo=render&logoColor=white" alt="Render" />
 </p>
-We are **Ferhat Sevdalı**, **Emir Şefik Temel**, and **Ege Göktuğ Ergin**—a team of three software engineering interns at **i2i Systems**. 
-When we first started this project, we didn't know each other at all. However, as we built **CopCoin** together from the ground up, we learned how to communicate effectively, complement each other's skills, and work as a cohesive team. Through continuous collaboration and shared problem-solving, we grew not only as developers but also as close friends. Today, we are proud to present the result of our joint effort!
+We are Ferhat Sevdalı,Emir Şefik Temel, and Ege Göktuğ Ergin—a team of three software engineering interns at i2i Systems. 
+When we first started this project, we didn't know each other at all. However, as we built CopCoin together from the ground up, we learned how to communicate effectively, complement each other's skills, and work as a cohesive team. Through continuous collaboration and shared problem-solving, we grew not only as developers but also as close friends. Today, we are proud to present the result of our joint effort!
 
+--------
 
 
 CopCoin is a premium, enterprise-grade full-stack cryptocurrency trading simulation platform. It is engineered with a high-performance **Java 21 / Spring Boot** backend, an ultra-responsive **React SPA** (Single Page Application) frontend, a persistent **PostgreSQL** database, an **Upstash Redis** caching layer, and native **Google Gemini Flash AI** integration.
