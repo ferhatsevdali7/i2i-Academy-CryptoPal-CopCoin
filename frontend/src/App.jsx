@@ -15,28 +15,162 @@ async function apiFetch(url, options = {}) {
 }
 
 const COLORS = {
-  bg: "#000000",
-  sidebar: "#0a0a0a",
-  card: "#0a0a0a",
-  cardBorder: "#1c1c1c",
-  cardBorderHover: "#2c2c2c",
-  inputBg: "#121212",
-  inputBorder: "#232323",
-  textMain: "#ffffff",
-  textMuted: "#8a8a8a",
+  bg: "var(--color-bg)",
+  sidebar: "var(--color-sidebar)",
+  card: "var(--color-card)",
+  cardBorder: "var(--color-card-border)",
+  cardBorderHover: "var(--color-card-border-hover)",
+  inputBg: "var(--color-input-bg)",
+  inputBorder: "var(--color-input-border)",
+  textMain: "var(--color-text-main)",
+  textMuted: "var(--color-text-muted)",
   yellow: "#fdc700",
   yellowHover: "#e8b700",
-  errorBg: "#220d0e",
-  errorBorder: "#3a1416",
-  errorText: "#ff583c",
-  successBg: "#0d2214",
-  successBorder: "#163a1e",
-  successText: "#4ade80",
+  errorBg: "var(--color-error-bg)",
+  errorBorder: "var(--color-error-border)",
+  errorText: "var(--color-error-text)",
+  successBg: "var(--color-success-bg)",
+  successBorder: "var(--color-success-border)",
+  successText: "var(--color-success-text)",
 };
 
 const pageBg = {
-  background:
-    "radial-gradient(circle at 15% 0%, rgba(253,199,0,0.05), transparent 40%), radial-gradient(circle at 85% 100%, rgba(253,199,0,0.04), transparent 45%), #000000",
+  background: "var(--color-page-bg)",
+};
+
+const TRANSLATIONS = {
+  TR: {
+    home: "Ana Sayfa",
+    portfolio: "Portföyüm",
+    history: "İşlem Geçmişi",
+    logout: "Çıkış Yap",
+    marketTitle: "Piyasa",
+    marketDesc: "Kriptoların canlı fiyatlarını takip et, incele ve işlem yap.",
+    portfolioTitle: "Portföyüm",
+    portfolioDesc: "Nakit bakiyen ve sahip olduğun varlıklar.",
+    historyTitle: "İşlem Geçmişi",
+    historyDesc: "Bugüne kadar gerçekleştirdiğin tüm al/sat işlemleri.",
+    searchPlaceholder: "Kripto veya işlem ara...",
+    inspect: "İncele",
+    back: "Piyasaya dön",
+    buy: "Satın Al",
+    sell: "Sat",
+    dollar: "Dolar (USD)",
+    amount: "Miktar",
+    totalValue: "Toplam Portföy Değeri (USDT + Kriptolar)",
+    cash: "USDT (Nakit)",
+    changePass: "Şifre Değiştir",
+    deleteAcc: "Hesap Sil",
+    aiWidgetTitle: "CopCoin Yapay Zeka Danışmanı",
+    aiPlaceholder: "Piyasa hakkında bir soru sor...",
+    aiSend: "Gönder",
+    loading: "Yükleniyor...",
+    noTransactions: "Henüz bir işlem yapmadın. Piyasa sayfasından bir coin seçip al/sat yapabilirsin.",
+    price: "Fiyat",
+    priceChart: "Fiyat Grafiği",
+    action: "İşlem",
+    asset: "Varlık",
+    total: "Toplam",
+    date: "Tarih",
+    welcome: "Hoş Geldiniz",
+    welcomeDesc: "İşlemlerinize devam etmek için lütfen giriş yapınız",
+    joinUs: "Aramıza Katıl",
+    joinUsDesc: "Hesabını oluştur, sana özel başlangıç bakiyesiyle işlem yapmaya başla",
+    usernameLabel: "Kullanıcı Adı",
+    usernamePlaceholder: "Kullanıcı adınız",
+    passwordLabel: "Şifre",
+    passwordPlaceholder: "••••••••••••••••",
+    logIn: "Giriş Yap",
+    register: "Kayıt Ol",
+    loggingIn: "Giriş yapılıyor...",
+    registering: "Kayıt oluşturuluyor...",
+    noAccount: "Hesabın yok mu?",
+    haveAccount: "Zaten hesabın var mı?",
+    authExpiredNotice: "Oturumun süresi doldu, güvenlik için tekrar giriş yapman gerekiyor.",
+    serverError: "Sunucuya ulaşılamadı. Lütfen backend servisinin çalıştığından emin olun.",
+    accountSettings: "Hesap Ayarları",
+    accountInfoTab: "Hesap Bilgileri",
+    changePasswordTab: "Şifre Değiştir",
+    deleteAccountTab: "Hesap Silme",
+    currentPasswordLabel: "Mevcut Şifre",
+    newPasswordLabel: "Yeni Şifre",
+    confirmPasswordLabel: "Yeni Şifre (Tekrar)",
+    minCharPlaceholder: "En az 6 karakter",
+    updatePasswordBtn: "Şifreyi Güncelle",
+    deletePermanently: "Hesabı kalıcı olarak sil",
+    deleteAccNotice: "Bu işlem geri alınamaz. Cüzdanın, işlem geçmişin ve hesap bilgilerin tamamen silinir.",
+    deleteAccBtn: "Hesabımı Sil",
+    cancelBtn: "Vazgeç",
+    yesDeleteBtn: "Evet, Sil",
+  },
+  EN: {
+    home: "Home",
+    portfolio: "Portfolio",
+    history: "Transaction History",
+    logout: "Log Out",
+    marketTitle: "Market",
+    marketDesc: "Track live cryptocurrency prices, analyze, and trade.",
+    portfolioTitle: "Portfolio",
+    portfolioDesc: "Your cash balance and owned assets.",
+    historyTitle: "Transaction History",
+    historyDesc: "A record of all your past buy and sell trades.",
+    searchPlaceholder: "Search crypto or transaction...",
+    inspect: "Inspect",
+    back: "Back to Market",
+    buy: "Buy",
+    sell: "Sell",
+    dollar: "Dollar (USD)",
+    amount: "Amount",
+    totalValue: "Total Portfolio Value (USDT + Cryptos)",
+    cash: "USDT (Cash)",
+    changePass: "Change Password",
+    deleteAcc: "Delete Account",
+    aiWidgetTitle: "CopCoin AI Advisor",
+    aiPlaceholder: "Ask a question about the market...",
+    aiSend: "Send",
+    loading: "Loading...",
+    noTransactions: "You have no transactions yet. Select a coin from Market and trade.",
+    price: "Price",
+    priceChart: "Price Chart",
+    action: "Action",
+    asset: "Asset",
+    total: "Total",
+    date: "Date",
+    welcome: "Welcome",
+    welcomeDesc: "Please log in to continue your trades",
+    joinUs: "Join Us",
+    joinUsDesc: "Create your account and start trading with your welcome balance",
+    usernameLabel: "Username",
+    usernamePlaceholder: "Your username",
+    passwordLabel: "Password",
+    passwordPlaceholder: "••••••••••••••••",
+    logIn: "Log In",
+    register: "Register",
+    loggingIn: "Logging in...",
+    registering: "Registering...",
+    noAccount: "Don't have an account?",
+    haveAccount: "Already have an account?",
+    authExpiredNotice: "Your session has expired. Please log in again for security.",
+    serverError: "Cannot reach server. Please make sure backend is running.",
+    accountSettings: "Account Settings",
+    accountInfoTab: "Account Info",
+    changePasswordTab: "Change Password",
+    deleteAccountTab: "Delete Account",
+    currentPasswordLabel: "Current Password",
+    newPasswordLabel: "New Password",
+    confirmPasswordLabel: "Confirm New Password",
+    minCharPlaceholder: "At least 6 characters",
+    updatePasswordBtn: "Update Password",
+    deletePermanently: "Permanently delete account",
+    deleteAccNotice: "This action cannot be undone. Your wallet, transaction history, and account details will be permanently deleted.",
+    deleteAccBtn: "Delete My Account",
+    cancelBtn: "Cancel",
+    yesDeleteBtn: "Yes, Delete",
+  }
+};
+
+const t = (key, lang) => {
+  return TRANSLATIONS[lang]?.[key] || TRANSLATIONS["TR"]?.[key] || key;
 };
 
 const COINS = [
@@ -188,13 +322,13 @@ function Card({ title, className = "", children, right = null, height = null }) 
 
 // AUTH SCREEN
 
-function AuthScreen({ onAuthed, expiredNotice }) {
+function AuthScreen({ onAuthed, expiredNotice, lang, setLang, theme, setTheme }) {
   const [mode, setMode] = useState("login");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState(
-    expiredNotice ? { text: "Oturumun süresi doldu, güvenlik için tekrar giriş yapman gerekiyor.", type: "error" } : { text: "", type: "" }
+    expiredNotice ? { text: t("authExpiredNotice", lang), type: "error" } : { text: "", type: "" }
   );
 
   const isLogin = mode === "login";
@@ -221,31 +355,67 @@ function AuthScreen({ onAuthed, expiredNotice }) {
       const data = await res.json();
 
       if (!res.ok) {
-        setMessage({ text: data.error || (isLogin ? "Giriş başarısız oldu!" : "Kayıt başarısız oldu!"), type: "error" });
+        setMessage({ text: data.error || (isLogin ? (lang === "TR" ? "Giriş başarısız oldu!" : "Login failed!") : (lang === "TR" ? "Kayıt başarısız oldu!" : "Registration failed!")), type: "error" });
         return;
       }
 
       if (isLogin) {
-        setMessage({ text: data.message || "Giriş başarılı!", type: "success" });
+        setMessage({ text: data.message || (lang === "TR" ? "Giriş başarılı!" : "Login successful!"), type: "success" });
         setTimeout(() => {
           onAuthed({ token: data.token, username: data.username, balance: data.balance, userId: data.id });
         }, 400);
       } else {
-        setMessage({ text: data.message || "Kayıt başarılı! Şimdi giriş yapabilirsin.", type: "success" });
+        setMessage({ text: data.message || (lang === "TR" ? "Kayıt başarılı! Şimdi giriş yapabilirsin." : "Registration successful! You can log in now."), type: "success" });
         setTimeout(() => {
           setMode("login");
           setMessage({ text: "", type: "" });
         }, 1000);
       }
     } catch (err) {
-      setMessage({ text: "Sunucuya ulaşılamadı. Lütfen backend servisinin çalıştığından emin olun.", type: "error" });
+      setMessage({ text: t("serverError", lang), type: "error" });
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-6" style={pageBg}>
+    <div className="min-h-screen flex items-center justify-center p-6 relative" style={pageBg}>
+      {/* Dil ve Tema Seçeneği Butonları (TR/EN ve Açık/Koyu) (Ferhat) */}
+      <div className="absolute top-6 right-6 flex gap-2">
+        <button
+          onClick={() => setLang(lang === "TR" ? "EN" : "TR")}
+          className="rounded-xl px-3 py-1.5 text-xs font-bold transition-all duration-150 active:scale-[0.95]"
+          style={{ background: COLORS.inputBg, border: `1px solid ${COLORS.inputBorder}`, color: COLORS.textMain }}
+        >
+          {lang === "TR" ? "EN" : "TR"}
+        </button>
+        <button
+          type="button"
+          onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+          className="rounded-xl px-3 py-1.5 text-xs font-bold transition-all duration-150 active:scale-[0.95] flex items-center justify-center"
+          style={{ background: COLORS.inputBg, border: `1px solid ${COLORS.inputBorder}`, color: COLORS.textMain }}
+          aria-label={theme === "dark" ? "Açık tema" : "Koyu tema"}
+        >
+          {theme === "dark" ? (
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" style={{ width: 14, height: 14 }}>
+              <circle cx="12" cy="12" r="5"></circle>
+              <line x1="12" y1="1" x2="12" y2="3"></line>
+              <line x1="12" y1="21" x2="12" y2="23"></line>
+              <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+              <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+              <line x1="1" y1="12" x2="3" y2="12"></line>
+              <line x1="21" y1="12" x2="23" y2="12"></line>
+              <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+              <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+            </svg>
+          ) : (
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" style={{ width: 14, height: 14 }}>
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+            </svg>
+          )}
+        </button>
+      </div>
+
       <div
         className="w-full rounded-3xl px-8 pt-10 pb-8"
         style={{ maxWidth: 380, background: COLORS.card, border: `1px solid ${COLORS.cardBorder}`, boxShadow: "0 40px 80px -30px rgba(0,0,0,0.9)" }}
@@ -257,22 +427,22 @@ function AuthScreen({ onAuthed, expiredNotice }) {
 
         {isLogin ? (
           <>
-            <h1 className="text-center font-bold text-2xl mb-1" style={{ color: COLORS.textMain, letterSpacing: "-0.02em" }}>Hoş Geldiniz</h1>
-            <p className="text-center text-sm mb-7 px-1.5" style={{ color: COLORS.textMuted, lineHeight: 1.5 }}>İşlemlerinize devam etmek için lütfen giriş yapınız</p>
+            <h1 className="text-center font-bold text-2xl mb-1" style={{ color: COLORS.textMain, letterSpacing: "-0.02em" }}>{t("welcome", lang)}</h1>
+            <p className="text-center text-sm mb-7 px-1.5" style={{ color: COLORS.textMuted, lineHeight: 1.5 }}>{t("welcomeDesc", lang)}</p>
           </>
         ) : (
           <>
-            <h1 className="text-center font-bold text-2xl mb-1" style={{ color: COLORS.textMain, letterSpacing: "-0.02em" }}>Aramıza Katıl</h1>
-            <p className="text-center text-sm mb-7 px-1.5" style={{ color: COLORS.textMuted, lineHeight: 1.5 }}>Hesabını oluştur, sana özel başlangıç bakiyesiyle işlem yapmaya başla</p>
+            <h1 className="text-center font-bold text-2xl mb-1" style={{ color: COLORS.textMain, letterSpacing: "-0.02em" }}>{t("joinUs", lang)}</h1>
+            <p className="text-center text-sm mb-7 px-1.5" style={{ color: COLORS.textMuted, lineHeight: 1.5 }}>{t("joinUsDesc", lang)}</p>
           </>
         )}
 
         <form onSubmit={submit}>
-          <Field label="Kullanıcı Adı" type="text" placeholder="Kullanıcı adınız" value={username} onChange={(e) => setUsername(e.target.value)} required />
-          <Field label="Şifre" type="password" placeholder="••••••••••••••••" value={password} onChange={(e) => setPassword(e.target.value)} required />
+          <Field label={t("usernameLabel", lang)} type="text" placeholder={t("usernamePlaceholder", lang)} value={username} onChange={(e) => setUsername(e.target.value)} required />
+          <Field label={t("passwordLabel", lang)} type="password" placeholder={t("passwordPlaceholder", lang)} value={password} onChange={(e) => setPassword(e.target.value)} required />
 
-          <PrimaryButton type="submit" loading={loading} loadingText={isLogin ? "Giriş yapılıyor..." : "Kayıt oluşturuluyor..."}>
-            <span>{isLogin ? "Giriş Yap" : "Kayıt Ol"}</span>
+          <PrimaryButton type="submit" loading={loading} loadingText={isLogin ? t("loggingIn", lang) : t("registering", lang)}>
+            <span>{isLogin ? t("logIn", lang) : t("register", lang)}</span>
             <svg viewBox="0 0 24 24" fill="none" style={{ width: 16, height: 16 }}>
               <path d="M5 12H19M19 12L13 6M19 12L13 18" stroke="#141414" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
@@ -283,9 +453,9 @@ function AuthScreen({ onAuthed, expiredNotice }) {
 
         <p className="text-center text-sm mt-5" style={{ color: COLORS.textMuted }}>
           {isLogin ? (
-            <>Hesabın yok mu?{" "}<a onClick={() => switchMode("register")} className="font-bold cursor-pointer hover:underline" style={{ color: COLORS.yellow }}>Kayıt Ol</a></>
+            <>{t("noAccount", lang)}{" "}<a onClick={() => switchMode("register")} className="font-bold cursor-pointer hover:underline" style={{ color: COLORS.yellow }}>{t("register", lang)}</a></>
           ) : (
-            <>Zaten hesabın var mı?{" "}<a onClick={() => switchMode("login")} className="font-bold cursor-pointer hover:underline" style={{ color: COLORS.yellow }}>Giriş Yap</a></>
+            <>{t("haveAccount", lang)}{" "}<a onClick={() => switchMode("login")} className="font-bold cursor-pointer hover:underline" style={{ color: COLORS.yellow }}>{t("logIn", lang)}</a></>
           )}
         </p>
       </div>
@@ -309,11 +479,11 @@ const NAV_ITEMS = [
   { key: "history", label: "İşlem Geçmişi", icon: "M12 8V12L15 15M21 12A9 9 0 1 1 12 3" },
 ];
 
-function Sidebar({ active, onNavigate, username, onLogout, onOpenAccount }) {
+function Sidebar({ active, onNavigate, username, onLogout, onOpenAccount, lang }) {
   return (
     <div
       className="hidden md:flex flex-col shrink-0"
-      style={{ width: 240, background: COLORS.sidebar, borderRight: `1px solid ${COLORS.cardBorder}`, minHeight: "100vh" }}
+      style={{ width: 240, background: COLORS.sidebar, borderRight: `1px solid ${COLORS.cardBorder}`, height: "100vh" }}
     >
       <div className="flex items-center px-5 py-7">
         <img src="/logo-dark.png" alt="CopCoin" style={{ height: 46, width: "auto" }} />
@@ -335,13 +505,19 @@ function Sidebar({ active, onNavigate, username, onLogout, onOpenAccount }) {
               onMouseLeave={(e) => { if (!isActive) e.currentTarget.style.background = "transparent"; }}
             >
               <NavIcon path={item.icon} />
-              {item.label}
+              {t(item.key, lang)}
             </button>
           );
         })}
       </nav>
 
       <div className="px-4 pb-5 pt-3" style={{ borderTop: `1px solid ${COLORS.cardBorder}` }}>
+        {/* Canli Fiyat Senkronizasyon Gostergesi (Ferhat) */}
+        <div className="flex items-center gap-2 px-2.5 py-1.5 mb-2 rounded-lg text-[10.5px] font-semibold" style={{ background: "rgba(74,222,128,0.06)", border: "1px solid rgba(74,222,128,0.15)", color: COLORS.successText }}>
+          <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: COLORS.successText, boxShadow: `0 0 8px ${COLORS.successText}`, animation: "copcoin-dot-pulse 1.5s ease-in-out infinite" }} />
+          <span>{lang === "TR" ? "Canlı • Fiyatlar 15s'de bir güncelleniyor" : "Live • Prices sync every 15s"}</span>
+        </div>
+
         <button
           onClick={onOpenAccount}
           className="w-full flex items-center gap-2.5 px-2 py-2 mb-2 rounded-xl transition-all duration-150 active:scale-[0.97]"
@@ -367,14 +543,14 @@ function Sidebar({ active, onNavigate, username, onLogout, onOpenAccount }) {
           onMouseEnter={(e) => { e.currentTarget.style.borderColor = "#3a3a3a"; }}
           onMouseLeave={(e) => { e.currentTarget.style.borderColor = COLORS.inputBorder; }}
         >
-          Çıkış Yap
+          {t("logout", lang)}
         </button>
       </div>
     </div>
   );
 }
 
-function MobileNav({ active, onNavigate }) {
+function MobileNav({ active, onNavigate, lang }) {
   return (
     <div
       className="flex md:hidden overflow-x-auto gap-2 px-4 py-3 mb-2"
@@ -390,7 +566,7 @@ function MobileNav({ active, onNavigate }) {
             style={{ background: isActive ? "rgba(253,199,0,0.1)" : COLORS.inputBg, color: isActive ? COLORS.yellow : COLORS.textMuted }}
           >
             <NavIcon path={item.icon} size={14} />
-            {item.label}
+            {t(item.key, lang)}
           </button>
         );
       })}
@@ -422,7 +598,7 @@ function MiniSparkline({ points, color }) {
 
 // ana ekran
 
-function HomeView({ prices, lastPrices, history, onInspect }) {
+function HomeView({ prices, lastPrices, history, onInspect, coins = COINS, lang }) {
   function priceChange(sym) {
     const last = lastPrices[sym];
     const current = prices[sym];
@@ -435,52 +611,54 @@ function HomeView({ prices, lastPrices, history, onInspect }) {
 
   return (
     <div className="max-w-[1000px] w-full mx-auto">
-      <h1 className="text-2xl font-bold mb-1" style={{ color: COLORS.textMain, letterSpacing: "-0.02em" }}>Piyasa</h1>
-      <p className="text-sm mb-6" style={{ color: COLORS.textMuted }}>Kriptoların canlı fiyatlarını takip et, incele ve işlem yap.</p>
+      <h1 className="text-2xl font-bold mb-1" style={{ color: COLORS.textMain, letterSpacing: "-0.02em" }}>{t("marketTitle", lang)}</h1>
+      <p className="text-sm mb-6" style={{ color: COLORS.textMuted }}>{t("marketDesc", lang)}</p>
 
       <Card height={480}>
-        {COINS.map((coin, i) => {
-          const change = priceChange(coin.symbol);
-          return (
-            <div
-              key={coin.symbol}
-              onClick={() => onInspect(coin.symbol)} // tum satir bu coin'e ozel tiklanabilir (Ege)
-              className="flex items-center justify-between py-4 px-2 -mx-2 gap-4 flex-wrap rounded-xl cursor-pointer transition-all duration-150 active:scale-[0.99]"
-              style={{ borderBottom: i < COINS.length - 1 ? `1px solid ${COLORS.cardBorder}` : "none" }}
-              onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.03)"; }}
-              onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
-            >
-              <div className="flex items-center gap-3 shrink-0" style={{ minWidth: 150 }}>
-                <AssetBadge label={coin.symbol[0]} bg={coin.badgeBg} size={36} />
-                <div>
-                  <div className="font-bold text-sm" style={{ color: COLORS.textMain }}>{coin.name}</div>
-                  <div className="text-xs" style={{ color: COLORS.textMuted }}>{coin.symbol}/USDT</div>
-                </div>
-              </div>
-
-              <div className="hidden sm:block shrink-0">
-                <MiniSparkline points={history[coin.symbol]} color={change ? (change.up ? COLORS.successText : COLORS.errorText) : COLORS.yellow} />
-              </div>
-
-              <div className="text-right shrink-0" style={{ minWidth: 100 }}>
-                <div className="font-bold text-sm" style={{ color: COLORS.textMain }}>{fmtUsd(prices[coin.symbol])}</div>
-                {change && (
-                  <div className="text-xs" style={{ color: change.up ? COLORS.successText : COLORS.errorText }}>{change.text}</div>
-                )}
-              </div>
-
-              <button
-                onClick={(e) => { e.stopPropagation(); onInspect(coin.symbol); }} // satir zaten tiklanabilir oldugu icin cift tetiklenmesin diye durduruluyor (Ege)
-                className="rounded-xl px-4 py-2.5 text-[13px] font-bold transition-all duration-150 active:scale-[0.95] shrink-0"
-                style={{ background: COLORS.inputBg, border: `1px solid ${COLORS.inputBorder}`, color: COLORS.textMain }}
-                onMouseEnter={(e) => { e.currentTarget.style.borderColor = COLORS.yellow; e.currentTarget.style.color = COLORS.yellow; }}
-                onMouseLeave={(e) => { e.currentTarget.style.borderColor = COLORS.inputBorder; e.currentTarget.style.color = COLORS.textMain; }}
+        <div className="overflow-y-auto pr-1 h-full" style={{ maxHeight: "420px" }}> {/* Kaydırma alanı ekledik (Ferhat) */}
+          {coins.map((coin, i) => {
+            const change = priceChange(coin.symbol);
+            return (
+              <div
+                key={coin.symbol}
+                onClick={() => onInspect(coin.symbol)} // tum satir bu coin'e ozel tiklanabilir (Ege)
+                className="flex items-center justify-between py-4 px-2 -mx-2 gap-4 flex-wrap rounded-xl cursor-pointer transition-all duration-150 active:scale-[0.99]"
+                style={{ borderBottom: i < coins.length - 1 ? `1px solid ${COLORS.cardBorder}` : "none" }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.03)"; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
               >
-                İncele
-              </button>
-            </div>
-          );
-        })}
+                <div className="flex items-center gap-3 shrink-0" style={{ minWidth: 150 }}>
+                  <AssetBadge label={coin.symbol[0]} bg={coin.badgeBg} size={36} />
+                  <div>
+                    <div className="font-bold text-sm" style={{ color: COLORS.textMain }}>{coin.name}</div>
+                    <div className="text-xs" style={{ color: COLORS.textMuted }}>{coin.symbol}/USDT</div>
+                  </div>
+                </div>
+
+                <div className="hidden sm:block shrink-0">
+                  <MiniSparkline points={history[coin.symbol]} color={change ? (change.up ? COLORS.successText : COLORS.errorText) : COLORS.yellow} />
+                </div>
+
+                <div className="text-right shrink-0" style={{ minWidth: 100 }}>
+                  <div className="font-bold text-sm" style={{ color: COLORS.textMain }}>{fmtUsd(prices[coin.symbol])}</div>
+                  {change && (
+                    <div className="text-xs" style={{ color: change.up ? COLORS.successText : COLORS.errorText }}>{change.text}</div>
+                  )}
+                </div>
+
+                <button
+                  onClick={(e) => { e.stopPropagation(); onInspect(coin.symbol); }} // satir zaten tiklanabilir oldugu icin cift tetiklenmesin diye durduruluyor (Ege)
+                  className="rounded-xl px-4 py-2.5 text-[13px] font-bold transition-all duration-150 active:scale-[0.95] shrink-0"
+                  style={{ background: COLORS.inputBg, border: `1px solid ${COLORS.inputBorder}`, color: COLORS.textMain }}
+                  onMouseEnter={(e) => { e.currentTarget.style.borderColor = COLORS.yellow; e.currentTarget.style.color = COLORS.yellow; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.borderColor = COLORS.inputBorder; e.currentTarget.style.color = COLORS.textMain; }}
+                >
+                  {t("inspect", lang)}
+                </button>
+              </div>
+            );
+          })}
+        </div>
       </Card>
     </div>
   );
@@ -522,7 +700,7 @@ function LineChart({ points }) {
   );
 }
 
-function CoinDetailView({ coin, price, lastPrice, history, historyLoading, userId, token, onBack, onTraded }) {
+function CoinDetailView({ coin, price, lastPrice, history, historyLoading, userId, token, onBack, onTraded, lang }) {
   const [action, setAction] = useState("BUY");
   const [usdValue, setUsdValue] = useState("");
   const [coinValue, setCoinValue] = useState("");
@@ -573,10 +751,10 @@ function CoinDetailView({ coin, price, lastPrice, history, historyLoading, userI
       });
       const data = await res.json();
       if (!res.ok) {
-        setTradeMessage({ text: data.error || data.message || "İşlem başarısız oldu.", type: "error" });
+        setTradeMessage({ text: data.error || data.message || (lang === "TR" ? "İşlem başarısız oldu." : "Transaction failed."), type: "error" });
         return;
       }
-      setTradeMessage({ text: data.message || "İşlem başarıyla gerçekleşti.", type: "success" });
+      setTradeMessage({ text: data.message || (lang === "TR" ? "İşlem başarıyla gerçekleşti." : "Transaction completed successfully."), type: "success" });
       setUsdValue("");
       setCoinValue("");
       onTraded({
@@ -588,7 +766,7 @@ function CoinDetailView({ coin, price, lastPrice, history, historyLoading, userI
         timestamp: data.timestamp || new Date().toISOString(),
       });
     } catch (err) {
-      setTradeMessage({ text: "Sunucuya ulaşılamadı. Backend çalışıyor mu?", type: "error" });
+      setTradeMessage({ text: lang === "TR" ? "Sunucuya ulaşılamadı. Backend çalışıyor mu?" : "Cannot reach server. Is backend running?", type: "error" });
     } finally {
       setTradeLoading(false);
     }
@@ -604,7 +782,7 @@ function CoinDetailView({ coin, price, lastPrice, history, historyLoading, userI
         <svg viewBox="0 0 24 24" fill="none" style={{ width: 16, height: 16 }}>
           <path d="M15 18L9 12L15 6" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
-        Piyasaya dön
+        {t("back", lang)}
       </button>
 
       <div className="flex items-center gap-3 mb-6 flex-wrap">
@@ -619,17 +797,17 @@ function CoinDetailView({ coin, price, lastPrice, history, historyLoading, userI
       </div>
 
       <div className="grid grid-cols-12 gap-5">
-        <Card title="Fiyat Grafiği" className="col-span-12 lg:col-span-7" height={480}>
+        <Card title={t("priceChart", lang)} className="col-span-12 lg:col-span-7" height={480}>
           {historyLoading ? (
             <div className="flex items-center justify-center gap-2" style={{ height: 220, color: COLORS.textMuted, fontSize: 13 }}>
-              <Spinner /> Yükleniyor...
+              <Spinner /> {t("loading", lang)}
             </div>
           ) : (
             <LineChart points={history} />
           )}
         </Card>
 
-        <Card title={`${coin} Al / Sat`} className="col-span-12 lg:col-span-5" height={480}>
+        <Card title={`${coin} ${action === "BUY" ? (lang === "TR" ? "Al" : "Buy") : (lang === "TR" ? "Sat" : "Sell")}`} className="col-span-12 lg:col-span-5" height={480}>
           <form onSubmit={submitTrade}>
             <div className="flex gap-2 mb-4">
               {["BUY", "SELL"].map((a) => {
@@ -647,14 +825,14 @@ function CoinDetailView({ coin, price, lastPrice, history, historyLoading, userI
                       color: isActive ? (isBuy ? COLORS.successText : COLORS.errorText) : COLORS.textMuted,
                     }}
                   >
-                    {isBuy ? "AL" : "SAT"}
+                    {isBuy ? (lang === "TR" ? "AL" : "BUY") : (lang === "TR" ? "SAT" : "SELL")}
                   </button>
                 );
               })}
             </div>
 
             <div className="mb-3">
-              <label className="block text-xs mb-2 font-medium" style={{ color: "#a3a3a3" }}>Dolar (USD)</label>
+              <label className="block text-xs mb-2 font-medium" style={{ color: "#a3a3a3" }}>{t("dollar", lang)}</label>
               <div className="relative">
                 <input
                   type="number"
@@ -682,7 +860,7 @@ function CoinDetailView({ coin, price, lastPrice, history, historyLoading, userI
             </div>
 
             <div className="mb-4">
-              <label className="block text-xs mb-2 font-medium" style={{ color: "#a3a3a3" }}>Miktar ({coin})</label>
+              <label className="block text-xs mb-2 font-medium" style={{ color: "#a3a3a3" }}>{t("amount", lang)} ({coin})</label>
               <div className="relative">
                 <input
                   type="number"
@@ -698,8 +876,8 @@ function CoinDetailView({ coin, price, lastPrice, history, historyLoading, userI
               </div>
             </div>
 
-            <PrimaryButton type="submit" loading={tradeLoading} loadingText="Gönderiliyor...">
-              {action === "BUY" ? "Satın Al" : "Sat"}
+            <PrimaryButton type="submit" loading={tradeLoading} loadingText={lang === "TR" ? "Gönderiliyor..." : "Sending..."}>
+              {action === "BUY" ? t("buy", lang) : t("sell", lang)}
             </PrimaryButton>
           </form>
           <MessageBox text={tradeMessage.text} type={tradeMessage.type} />
@@ -711,7 +889,7 @@ function CoinDetailView({ coin, price, lastPrice, history, historyLoading, userI
 
 //  PORTFOLIO
 
-function PortfolioView({ wallet, walletError, prices }) {
+function PortfolioView({ wallet, walletError, prices, coins = COINS, lang }) {
   const usdt = wallet ? parseFloat(wallet.usdtBalance || 0) : 0;
   
   // Dynamic portföy toplam değeri hesaplama (Ferhat)
@@ -732,7 +910,7 @@ function PortfolioView({ wallet, walletError, prices }) {
   ];
 
   if (wallet) {
-    COINS.forEach(coin => {
+    coins.forEach(coin => {
       const fieldName = coin.symbol.toLowerCase() + "Balance";
       const qty = parseFloat(wallet[fieldName] || 0);
       const price = prices[coin.symbol] || 0;
@@ -749,12 +927,12 @@ function PortfolioView({ wallet, walletError, prices }) {
 
   return (
     <div className="max-w-[1000px] w-full mx-auto">
-      <h1 className="text-2xl font-bold mb-1" style={{ color: COLORS.textMain, letterSpacing: "-0.02em" }}>Portföyüm</h1>
-      <p className="text-sm mb-6" style={{ color: COLORS.textMuted }}>Nakit bakiyen ve sahip olduğun varlıklar.</p>
+      <h1 className="text-2xl font-bold mb-1" style={{ color: COLORS.textMain, letterSpacing: "-0.02em" }}>{t("portfolioTitle", lang)}</h1>
+      <p className="text-sm mb-6" style={{ color: COLORS.textMuted }}>{t("portfolioDesc", lang)}</p>
 
       <Card height={650}> {/* Card yüksekliğini 10 coin sığsın diye biraz artırdık (Ferhat) */}
         <div className="text-3xl font-bold mb-1" style={{ letterSpacing: "-0.02em", color: COLORS.textMain }}>{fmtUsd(totalValue)}</div>
-        <div className="text-[13px] mb-5" style={{ color: COLORS.textMuted }}>Toplam Portföy Değeri (USDT + Kriptolar)</div>
+        <div className="text-[13px] mb-5" style={{ color: COLORS.textMuted }}>{t("totalValue", lang)}</div>
 
         <div className="overflow-y-auto pr-1" style={{ maxHeight: "480px" }}> {/* Kaydırma alanı ekledik (Ferhat) */}
           {rows.map((row, i, arr) => (
@@ -763,7 +941,7 @@ function PortfolioView({ wallet, walletError, prices }) {
               className="flex justify-between items-center py-3 text-sm"
               style={{ borderBottom: i < arr.length - 1 ? `1px solid ${COLORS.cardBorder}` : "none" }}
             >
-              <div className="flex items-center gap-2.5 font-semibold" style={{ color: COLORS.textMain }}>{row.badge}{row.label}</div>
+              <div className="flex items-center gap-2.5 font-semibold" style={{ color: COLORS.textMain }}>{row.badge}{row.label === "USDT (Nakit)" ? t("cash", lang) : row.label}</div>
               <div className="text-right">
                 <div style={{ color: COLORS.textMain }}>{row.qty}</div>
                 {row.val && <div className="text-[12.5px]" style={{ color: COLORS.textMuted }}>{row.val}</div>}
@@ -779,54 +957,56 @@ function PortfolioView({ wallet, walletError, prices }) {
 
 // Alım satım geçmişi görüntüleme
 
-function HistoryView({ transactions, error, loading }) {
+function HistoryView({ transactions, error, loading, lang }) {
   return (
     <div className="max-w-[1000px] w-full mx-auto">
-      <h1 className="text-2xl font-bold mb-1" style={{ color: COLORS.textMain, letterSpacing: "-0.02em" }}>İşlem Geçmişi</h1>
-      <p className="text-sm mb-6" style={{ color: COLORS.textMuted }}>Bugüne kadar gerçekleştirdiğin tüm al/sat işlemleri.</p>
+      <h1 className="text-2xl font-bold mb-1" style={{ color: COLORS.textMain, letterSpacing: "-0.02em" }}>{t("historyTitle", lang)}</h1>
+      <p className="text-sm mb-6" style={{ color: COLORS.textMuted }}>{t("historyDesc", lang)}</p>
 
       <Card height={480}>
         {loading ? (
           <div className="flex items-center justify-center gap-2 py-8" style={{ color: COLORS.textMuted, fontSize: 13 }}>
-            <Spinner /> Yükleniyor...
+            <Spinner /> {t("loading", lang)}
           </div>
         ) : error ? (
           <MessageBox text={error} type="error" />
         ) : transactions.length === 0 ? (
           <div className="text-center text-[13.5px] py-8" style={{ color: COLORS.textMuted }}>
-            Henüz bir işlem yapmadın. Piyasa sayfasından bir coin seçip al/sat yapabilirsin.
+            {t("noTransactions", lang)}
           </div>
         ) : (
-          transactions.map((t, i) => {
-            const isBuy = t.transactionType === "BUY";
-            return (
-              <div
-                key={t.id ?? i}
-                className="flex justify-between items-center py-3.5 text-sm"
-                style={{ borderBottom: i < transactions.length - 1 ? `1px solid ${COLORS.cardBorder}` : "none" }}
-              >
-                <div className="flex items-center gap-3">
-                  <span
-                    className="rounded-lg px-2.5 py-1 text-[11px] font-bold"
-                    style={{
-                      background: isBuy ? COLORS.successBg : COLORS.errorBg,
-                      color: isBuy ? COLORS.successText : COLORS.errorText,
-                    }}
-                  >
-                    {isBuy ? "AL" : "SAT"}
-                  </span>
-                  <span className="font-semibold" style={{ color: COLORS.textMain }}>{t.assetName}</span>
-                  <span style={{ color: COLORS.textMuted }}>{parseFloat(t.amount).toFixed(6)} {t.assetName}</span>
-                </div>
-                <div className="text-right">
-                  <div style={{ color: COLORS.textMain }}>{fmtUsd(t.totalCost)}</div>
-                  <div className="text-[11.5px]" style={{ color: COLORS.textMuted }}>
-                    {new Date(t.createdAt).toLocaleString("tr-TR")}
+          <div className="overflow-y-auto pr-1 h-full" style={{ maxHeight: "420px" }}> {/* Kaydırma alanı ekledik (Ferhat) */}
+            {transactions.map((tItem, i) => {
+              const isBuy = tItem.transactionType === "BUY";
+              return (
+                <div
+                  key={tItem.id ?? i}
+                  className="flex justify-between items-center py-3.5 text-sm"
+                  style={{ borderBottom: i < transactions.length - 1 ? `1px solid ${COLORS.cardBorder}` : "none" }}
+                >
+                  <div className="flex items-center gap-3">
+                    <span
+                      className="rounded-lg px-2.5 py-1 text-[11px] font-bold"
+                      style={{
+                        background: isBuy ? COLORS.successBg : COLORS.errorBg,
+                        color: isBuy ? COLORS.successText : COLORS.errorText,
+                      }}
+                    >
+                      {isBuy ? (lang === "TR" ? "AL" : "BUY") : (lang === "TR" ? "SAT" : "SELL")}
+                    </span>
+                    <span className="font-semibold" style={{ color: COLORS.textMain }}>{tItem.assetName}</span>
+                    <span style={{ color: COLORS.textMuted }}>{parseFloat(tItem.amount).toFixed(6)} {tItem.assetName}</span>
+                  </div>
+                  <div className="text-right">
+                    <div style={{ color: COLORS.textMain }}>{fmtUsd(tItem.totalCost)}</div>
+                    <div className="text-[11.5px]" style={{ color: COLORS.textMuted }}>
+                      {new Date(tItem.createdAt).toLocaleString(lang === "TR" ? "tr-TR" : "en-US")}
+                    </div>
                   </div>
                 </div>
-              </div>
-            );
-          })
+              );
+            })}
+          </div>
         )}
       </Card>
     </div>
@@ -834,7 +1014,7 @@ function HistoryView({ transactions, error, loading }) {
 }
 
 // COPCOIN AI 
-function AiWidget({ token, open, onOpenChange }) {
+function AiWidget({ token, open, onOpenChange, lang }) {
   const [bubbleDismissed, setBubbleDismissed] = useState(false);
   const [aiLog, setAiLog] = useState([]);
   const [aiQuestion, setAiQuestion] = useState("");
@@ -867,12 +1047,12 @@ function AiWidget({ token, open, onOpenChange }) {
       });
       const data = await res.json();
       if (!res.ok) {
-        setAiMessage({ text: data.error || data.message || "Yapay zeka servisi şu anda yanıt vermiyor. Lütfen daha sonra tekrar deneyiniz.", type: "error" });
+        setAiMessage({ text: data.error || data.message || (lang === "TR" ? "Yapay zeka servisi şu anda yanıt vermiyor. Lütfen daha sonra tekrar deneyiniz." : "AI service is not responding. Please try again later."), type: "error" });
         return;
       }
       setAiLog((log) => [...log, { role: "answer", text: data.answer }]);
     } catch (err) {
-      setAiMessage({ text: "Sunucuya ulaşılamadı. Backend çalışıyor mu?", type: "error" });
+      setAiMessage({ text: lang === "TR" ? "Sunucuya ulaşılamadı. Backend çalışıyor mu?" : "Cannot reach server. Is backend running?", type: "error" });
     } finally {
       setAiLoading(false);
     }
@@ -894,7 +1074,7 @@ function AiWidget({ token, open, onOpenChange }) {
             style={{ background: COLORS.card, border: `1px solid ${COLORS.cardBorder}`, color: COLORS.textMain, boxShadow: "0 12px 30px -10px rgba(0,0,0,0.6)", lineHeight: 1.45 }}
           >
             <div className="font-bold mb-0.5" style={{ color: COLORS.yellow }}>CopCoin AI</div>
-            Merhaba! Portföyün ve piyasa trendleri hakkında merak ettiklerini sorabilirsin — yardımcı olayım mı?
+            {lang === "TR" ? "Merhaba! Portföyün ve piyasa trendleri hakkında merak ettiklerini sorabilirsin — yardımcı olayım mı?" : "Hello! You can ask me anything about your portfolio and market trends — how can I help?"}
           </div>
           <button
             onClick={() => setBubbleDismissed(true)}
@@ -948,7 +1128,7 @@ function AiWidget({ token, open, onOpenChange }) {
           </span>
           <div className="flex-1">
             <div className="font-bold text-sm" style={{ color: COLORS.textMain }}>CopCoin AI</div>
-            <div className="text-[11.5px]" style={{ color: COLORS.textMuted }}>Size nasıl yardımcı olabilirim?</div>
+            <div className="text-[11.5px]" style={{ color: COLORS.textMuted }}>{lang === "TR" ? "Size nasıl yardımcı olabilirim?" : "How can I help you?"}</div>
           </div>
           <button
             onClick={() => onOpenChange(false)}
@@ -965,7 +1145,7 @@ function AiWidget({ token, open, onOpenChange }) {
         <div className="flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-3">
           {aiLog.length === 0 && (
             <div className="text-center text-[13px] py-6 px-2" style={{ color: COLORS.textMuted }}>
-              Portföyün ve piyasa trendleri hakkında bir soru sor.
+              {lang === "TR" ? "Portföyün ve piyasa trendleri hakkında bir soru sor." : "Ask a question about your portfolio and market trends."}
             </div>
           )}
           {aiLog.map((entry, i) => (
@@ -976,9 +1156,9 @@ function AiWidget({ token, open, onOpenChange }) {
                 lineHeight: 1.5,
                 maxWidth: "88%",
                 alignSelf: entry.role === "question" ? "flex-end" : "flex-start",
-                background: entry.role === "question" ? COLORS.inputBg : "#151107",
-                color: entry.role === "question" ? COLORS.textMain : "#f4e2a6",
-                border: `1px solid ${entry.role === "question" ? COLORS.inputBorder : "#2a2210"}`,
+                background: entry.role === "question" ? COLORS.inputBg : (theme === "dark" ? "#151107" : "#fffbeb"),
+                color: entry.role === "question" ? COLORS.textMain : (theme === "dark" ? "#f4e2a6" : "#b45309"),
+                border: `1px solid ${entry.role === "question" ? COLORS.inputBorder : (theme === "dark" ? "#2a2210" : "#fef3c7")}`,
               }}
             >
               {entry.text}
@@ -986,7 +1166,7 @@ function AiWidget({ token, open, onOpenChange }) {
           ))}
           {aiLoading && (
             <div className="flex items-center gap-2 self-start text-[12.5px]" style={{ color: COLORS.textMuted }}>
-              <Spinner /> Düşünüyor...
+              <Spinner /> {lang === "TR" ? "Düşünüyor..." : "Thinking..."}
             </div>
           )}
           <div ref={logEndRef} />
@@ -999,7 +1179,7 @@ function AiWidget({ token, open, onOpenChange }) {
               <textarea
                 value={aiQuestion}
                 onChange={(e) => setAiQuestion(e.target.value)}
-                placeholder="Bir şeyler sor..."
+                placeholder={t("aiPlaceholder", lang)}
                 required
                 rows={1}
                 className="flex-1 rounded-xl px-3.5 py-2.5 text-[13px] outline-none resize-none"
@@ -1031,8 +1211,9 @@ function AiWidget({ token, open, onOpenChange }) {
 
 // PANEL profil, sifre degistir, hesap sil
 
-function AccountPanel({ token, username, userId, onClose, onAccountDeleted }) {
+function AccountPanel({ token, username, userId, onClose, onAccountDeleted, lang, wallet, transactions = [], prices }) {
   const [tab, setTab] = useState("info"); // info | password | danger
+  const [walletOpen, setWalletOpen] = useState(false);
 
   // sifre degistirme formu
   const [currentPassword, setCurrentPassword] = useState("");
@@ -1052,11 +1233,11 @@ function AccountPanel({ token, username, userId, onClose, onAccountDeleted }) {
     setPwMessage({ text: "", type: "" });
 
     if (newPassword !== confirmPassword) {
-      setPwMessage({ text: "Yeni şifreler birbiriyle uyuşmuyor.", type: "error" });
+      setPwMessage({ text: lang === "TR" ? "Yeni şifreler birbiriyle uyuşmuyor." : "New passwords do not match.", type: "error" });
       return;
     }
     if (newPassword.length < 6) {
-      setPwMessage({ text: "Yeni şifre en az 6 karakter olmalı.", type: "error" });
+      setPwMessage({ text: lang === "TR" ? "Yeni şifre en az 6 karakter olmalı." : "New password must be at least 6 characters.", type: "error" });
       return;
     }
 
@@ -1069,15 +1250,15 @@ function AccountPanel({ token, username, userId, onClose, onAccountDeleted }) {
       });
       const data = await res.json();
       if (!res.ok) {
-        setPwMessage({ text: data.error || data.message || "Şifre değiştirilemedi.", type: "error" });
+        setPwMessage({ text: data.error || data.message || (lang === "TR" ? "Şifre değiştirilemedi." : "Failed to change password."), type: "error" });
         return;
       }
-      setPwMessage({ text: data.message || "Şifre güncellendi.", type: "success" });
+      setPwMessage({ text: data.message || (lang === "TR" ? "Şifre güncellendi." : "Password updated."), type: "success" });
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
     } catch (err) {
-      setPwMessage({ text: "Sunucuya ulaşılamadı. Backend çalışıyor mu?", type: "error" });
+      setPwMessage({ text: lang === "TR" ? "Sunucuya ulaşılamadı. Backend çalışıyor mu?" : "Cannot reach server. Is backend running?", type: "error" });
     } finally {
       setPwLoading(false);
     }
@@ -1095,21 +1276,21 @@ function AccountPanel({ token, username, userId, onClose, onAccountDeleted }) {
       });
       const data = await res.json();
       if (!res.ok) {
-        setDeleteMessage({ text: data.error || data.message || "Hesap silinemedi.", type: "error" });
+        setDeleteMessage({ text: data.error || data.message || (lang === "TR" ? "Hesap silinemedi." : "Failed to delete account."), type: "error" });
         return;
       }
       onAccountDeleted();
     } catch (err) {
-      setDeleteMessage({ text: "Sunucuya ulaşılamadı. Backend çalışıyor mu?", type: "error" });
+      setDeleteMessage({ text: lang === "TR" ? "Sunucuya ulaşılamadı. Backend çalışıyor mu?" : "Cannot reach server. Is backend running?", type: "error" });
     } finally {
       setDeleteLoading(false);
     }
   };
 
   const tabs = [
-    { key: "info", label: "Hesap Bilgileri" },
-    { key: "password", label: "Şifre Değiştir" },
-    { key: "danger", label: "Hesap Silme" },
+    { key: "info", label: t("accountInfoTab", lang) },
+    { key: "password", label: t("changePasswordTab", lang) },
+    { key: "danger", label: t("deleteAccountTab", lang) },
   ];
 
   return (
@@ -1132,7 +1313,7 @@ function AccountPanel({ token, username, userId, onClose, onAccountDeleted }) {
           </span>
           <div className="flex-1 min-w-0">
             <div className="font-bold text-sm truncate" style={{ color: COLORS.textMain }}>{username}</div>
-            <div className="text-[11.5px]" style={{ color: COLORS.textMuted }}>Hesap Ayarları</div>
+            <div className="text-[11.5px]" style={{ color: COLORS.textMuted }}>{t("accountSettings", lang)}</div>
           </div>
           <button
             onClick={onClose}
@@ -1146,40 +1327,114 @@ function AccountPanel({ token, username, userId, onClose, onAccountDeleted }) {
         </div>
 
         <div className="flex gap-1 px-4 pt-3">
-          {tabs.map((t) => {
-            const isActive = tab === t.key;
+          {tabs.map((tItem) => {
+            const isActive = tab === tItem.key;
             return (
               <button
-                key={t.key}
-                onClick={() => setTab(t.key)}
+                key={tItem.key}
+                onClick={() => setTab(tItem.key)}
                 className="px-3 py-2 rounded-lg text-[12.5px] font-semibold transition-all duration-150 active:scale-[0.95]"
                 style={{
                   background: isActive ? "rgba(253,199,0,0.1)" : "transparent",
                   color: isActive ? COLORS.yellow : COLORS.textMuted,
                 }}
               >
-                {t.label}
+                {tItem.label}
               </button>
             );
           })}
         </div>
 
         <div className="px-6 py-5" style={{ minHeight: 320 }}>
-          {tab === "info" && (
-            <div>
-              <div className="flex justify-between items-center py-3 text-sm">
-                <span style={{ color: COLORS.textMuted }}>Kullanıcı Adı</span>
-                <span className="font-semibold" style={{ color: COLORS.textMain }}>{username}</span>
-              </div>
-            </div>
-          )}
+          {tab === "info" && (() => {
+            const ownedAssets = wallet ? COINS.map(coin => {
+              const field = `${coin.symbol.toLowerCase()}Balance`;
+              const balance = wallet[field] || 0;
+              return {
+                ...coin,
+                balance,
+                price: prices?.[coin.symbol] || 0,
+                value: balance * (prices?.[coin.symbol] || 0)
+              };
+            }).filter(asset => asset.balance > 0.00000001) : [];
+
+             const cashBalance = wallet ? parseFloat(wallet.usdtBalance || 0) : 0;
+             const totalCryptoValue = ownedAssets.reduce((sum, asset) => sum + asset.value, 0);
+             const totalUsdValue = totalCryptoValue + cashBalance;
+ 
+             return (
+               <div className="flex flex-col gap-4">
+                 <div className="flex justify-between items-center py-2 text-sm border-b" style={{ borderColor: COLORS.cardBorder }}>
+                   <span style={{ color: COLORS.textMuted }}>{t("usernameLabel", lang)}</span>
+                   <span className="font-semibold text-base" style={{ color: COLORS.textMain }}>{username}</span>
+                 </div>
+                 <div className="flex justify-between items-center py-2 text-sm border-b" style={{ borderColor: COLORS.cardBorder }}>
+                   <span style={{ color: COLORS.textMuted }}>{lang === "TR" ? "Toplam İşlem Sayısı" : "Total Transactions"}</span>
+                   <span className="font-bold px-2.5 py-0.5 rounded-full text-xs" style={{ background: COLORS.inputBg, color: COLORS.yellow }}>
+                     {transactions?.length || 0}
+                   </span>
+                 </div>
+                 
+                 <div className="flex justify-between items-center py-2 text-sm border-b" style={{ borderColor: COLORS.cardBorder }}>
+                   <span style={{ color: COLORS.textMuted }}>{lang === "TR" ? "Toplam Varlık Değeri" : "Total Asset Value"}</span>
+                   <span className="font-bold text-sm" style={{ color: COLORS.yellow }}>
+                     {fmtUsd(totalUsdValue)}
+                   </span>
+                 </div>
+                 <div className="flex justify-between items-center py-2 text-sm border-b" style={{ borderColor: COLORS.cardBorder }}>
+                   <span style={{ color: COLORS.textMuted }}>{lang === "TR" ? "Kripto Yatırım Değeri" : "Crypto Assets Value"}</span>
+                   <span className="font-semibold text-sm" style={{ color: COLORS.textMain }}>
+                     {fmtUsd(totalCryptoValue)}
+                   </span>
+                 </div>
+ 
+                 <div className="mt-1">
+                   <div className="text-[11.5px] font-semibold uppercase tracking-wider mb-2" style={{ color: COLORS.textMuted }}>
+                     {lang === "TR" ? "Cüzdan Detayları" : "Wallet Details"}
+                   </div>
+                   {ownedAssets.length === 0 && cashBalance <= 0 ? (
+                     <div className="text-center text-xs py-3 rounded-2xl border" style={{ borderColor: COLORS.cardBorder, color: COLORS.textMuted }}>
+                       {lang === "TR" ? "Cüzdanda varlık bulunmuyor." : "No assets in wallet."}
+                     </div>
+                   ) : (
+                     <div className="flex flex-col gap-2 max-h-[140px] overflow-y-auto pr-1">
+                       {cashBalance > 0 && (
+                         <div className="flex justify-between items-center py-2 text-xs border-b" style={{ borderColor: COLORS.cardBorder }}>
+                           <div className="flex items-center gap-2 font-medium" style={{ color: COLORS.textMain }}>
+                             <span className="w-5 h-5 rounded-full bg-[#f5a623] flex items-center justify-center text-[10px] font-bold text-[#141414]">S</span>
+                             {lang === "TR" ? "USDT (Kullanılabilir Nakit)" : "USDT (Available Cash)"}
+                           </div>
+                           <div className="text-right">
+                             <div className="font-semibold" style={{ color: COLORS.textMain }}>{cashBalance.toFixed(2)} USDT</div>
+                             <div className="text-[10px]" style={{ color: COLORS.textMuted }}>{fmtUsd(cashBalance)}</div>
+                           </div>
+                         </div>
+                       )}
+                       {ownedAssets.map((asset) => (
+                         <div key={asset.symbol} className="flex justify-between items-center py-2 text-xs border-b last:border-0" style={{ borderColor: COLORS.cardBorder }}>
+                           <div className="flex items-center gap-2 font-medium" style={{ color: COLORS.textMain }}>
+                             <span className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold text-[#141414]" style={{ background: asset.badgeBg }}>{asset.symbol[0]}</span>
+                             {asset.symbol}
+                           </div>
+                           <div className="text-right">
+                             <div className="font-semibold" style={{ color: COLORS.textMain }}>{asset.balance.toFixed(6)} {asset.symbol}</div>
+                             <div className="text-[10px]" style={{ color: COLORS.textMuted }}>{fmtUsd(asset.value)}</div>
+                           </div>
+                         </div>
+                       ))}
+                     </div>
+                   )}
+                 </div>
+               </div>
+             );
+           })()}
 
           {tab === "password" && (
             <form onSubmit={submitPasswordChange}>
-              <Field label="Mevcut Şifre" type="password" placeholder="••••••••" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} required />
-              <Field label="Yeni Şifre" type="password" placeholder="En az 6 karakter" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} required />
-              <Field label="Yeni Şifre (Tekrar)" type="password" placeholder="••••••••" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required />
-              <PrimaryButton type="submit" loading={pwLoading} loadingText="Güncelleniyor...">Şifreyi Güncelle</PrimaryButton>
+              <Field label={t("currentPasswordLabel", lang)} type="password" placeholder="••••••••" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} required />
+              <Field label={t("newPasswordLabel", lang)} type="password" placeholder={t("minCharPlaceholder", lang)} value={newPassword} onChange={(e) => setNewPassword(e.target.value)} required />
+              <Field label={t("confirmPasswordLabel", lang)} type="password" placeholder="••••••••" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required />
+              <PrimaryButton type="submit" loading={pwLoading} loadingText={lang === "TR" ? "Güncelleniyor..." : "Updating..."}>{t("updatePasswordBtn", lang)}</PrimaryButton>
               <MessageBox text={pwMessage.text} type={pwMessage.type} />
             </form>
           )}
@@ -1190,9 +1445,9 @@ function AccountPanel({ token, username, userId, onClose, onAccountDeleted }) {
                 className="rounded-2xl p-4 mb-4"
                 style={{ background: COLORS.errorBg, border: `1px solid ${COLORS.errorBorder}` }}
               >
-                <div className="font-bold text-sm mb-1.5" style={{ color: COLORS.errorText }}>Hesabı kalıcı olarak sil</div>
+                <div className="font-bold text-sm mb-1.5" style={{ color: COLORS.errorText }}>{t("deletePermanently", lang)}</div>
                 <p className="text-[12.5px] leading-relaxed" style={{ color: COLORS.textMuted }}>
-                  Bu işlem geri alınamaz. Cüzdanın, işlem geçmişin ve hesap bilgilerin tamamen silinir.
+                  {t("deleteAccNotice", lang)}
                 </p>
               </div>
 
@@ -1202,11 +1457,11 @@ function AccountPanel({ token, username, userId, onClose, onAccountDeleted }) {
                   className="w-full rounded-2xl py-3 font-bold text-sm transition-transform duration-150 active:scale-[0.97]"
                   style={{ background: COLORS.errorBg, border: `1px solid ${COLORS.errorBorder}`, color: COLORS.errorText }}
                 >
-                  Hesabımı Sil
+                  {t("deleteAccBtn", lang)}
                 </button>
               ) : (
                 <form onSubmit={submitDeleteAccount}>
-                  <Field label="Onaylamak için şifreni gir" type="password" placeholder="••••••••" value={deletePassword} onChange={(e) => setDeletePassword(e.target.value)} required />
+                  <Field label={lang === "TR" ? "Onaylamak için şifreni gir" : "Enter password to confirm"} type="password" placeholder="••••••••" value={deletePassword} onChange={(e) => setDeletePassword(e.target.value)} required />
                   <div className="flex gap-2">
                     <button
                       type="button"
@@ -1214,7 +1469,7 @@ function AccountPanel({ token, username, userId, onClose, onAccountDeleted }) {
                       className="flex-1 rounded-xl py-3 text-sm font-semibold transition-transform duration-150 active:scale-[0.96]"
                       style={{ background: COLORS.inputBg, border: `1px solid ${COLORS.inputBorder}`, color: COLORS.textMain }}
                     >
-                      Vazgeç
+                      {t("cancelBtn", lang)}
                     </button>
                     <button
                       type="submit"
@@ -1222,7 +1477,7 @@ function AccountPanel({ token, username, userId, onClose, onAccountDeleted }) {
                       className="flex-1 rounded-xl py-3 text-sm font-bold transition-transform duration-150 active:scale-[0.96]"
                       style={{ background: COLORS.errorText, color: "#1a0000", opacity: deleteLoading ? 0.6 : 1 }}
                     >
-                      {deleteLoading ? "Siliniyor..." : "Evet, Sil"}
+                      {deleteLoading ? (lang === "TR" ? "Siliniyor..." : "Deleting...") : t("yesDeleteBtn", lang)}
                     </button>
                   </div>
                   <MessageBox text={deleteMessage.text} type={deleteMessage.type} />
@@ -1238,7 +1493,97 @@ function AccountPanel({ token, username, userId, onClose, onAccountDeleted }) {
 
 // DASHBOARD ROOT 
 
-function Dashboard({ session, onLogout, onAccountDeleted }) {
+function Header({ view, searchQuery, setSearchQuery, theme, setTheme, lang, setLang }) {
+  const getTitleKey = () => {
+    if (view === "home") return "marketTitle";
+    if (view === "portfolio") return "portfolioTitle";
+    if (view === "history") return "historyTitle";
+    if (view === "detail") return "priceChart";
+    return "";
+  };
+
+  return (
+    <div
+      className="flex flex-col sm:flex-row items-center justify-between px-6 md:px-8 py-4 gap-4"
+      style={{ borderBottom: `1px solid ${COLORS.cardBorder}`, background: COLORS.sidebar }}
+    >
+      <div className="flex items-center gap-3">
+        <h1 className="text-xl font-bold" style={{ color: COLORS.textMain, letterSpacing: "-0.02em" }}>
+          {t(getTitleKey(), lang)}
+        </h1>
+      </div>
+
+      <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
+        {/* Arama Kutusu (Ferhat) */}
+        {view !== "detail" && (
+          <div className="relative w-full sm:w-[220px]">
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder={t("searchPlaceholder", lang)}
+              className="w-full pl-8 pr-3 py-1.5 rounded-xl text-xs outline-none transition-all duration-150"
+              style={{
+                background: COLORS.inputBg,
+                border: `1px solid ${COLORS.inputBorder}`,
+                color: COLORS.textMain,
+              }}
+            />
+            <svg
+              className="absolute left-2.5 top-2.5"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              style={{ width: 12, height: 12, color: COLORS.textMuted }}
+            >
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+          </div>
+        )}
+
+        {/* Dil Seçeneği (Ferhat) */}
+        <button
+          onClick={() => setLang(lang === "TR" ? "EN" : "TR")}
+          className="rounded-xl px-3 py-1.5 text-xs font-bold transition-all duration-150 active:scale-[0.95]"
+          style={{ background: COLORS.inputBg, border: `1px solid ${COLORS.inputBorder}`, color: COLORS.textMain }}
+        >
+          {lang === "TR" ? "EN" : "TR"}
+        </button>
+
+        {/* Tema Seçeneği (Ferhat) */}
+        <button
+          onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+          className="rounded-xl px-3 py-1.5 text-xs font-bold transition-all duration-150 active:scale-[0.95] flex items-center justify-center"
+          style={{ background: COLORS.inputBg, border: `1px solid ${COLORS.inputBorder}`, color: COLORS.textMain }}
+        >
+          {theme === "dark" ? (
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 14, height: 14 }}>
+              <circle cx="12" cy="12" r="5"></circle>
+              <line x1="12" y1="1" x2="12" y2="3"></line>
+              <line x1="12" y1="21" x2="12" y2="23"></line>
+              <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+              <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+              <line x1="1" y1="12" x2="3" y2="12"></line>
+              <line x1="21" y1="12" x2="23" y2="12"></line>
+              <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+              <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+            </svg>
+          ) : (
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 14, height: 14 }}>
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+            </svg>
+          )}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function Dashboard({ session, onLogout, onAccountDeleted, theme, setTheme, lang, setLang }) {
   const { token, username, userId } = session;
 
   const [view, setView] = useState(() => {
@@ -1249,6 +1594,7 @@ function Dashboard({ session, onLogout, onAccountDeleted }) {
   });
   const [accountOpen, setAccountOpen] = useState(false);
   const [aiOpen, setAiOpen] = useState(false); // AI paneli acikken icerigi gercek bos alana gore ortalamak icin (Ege)
+  const [searchQuery, setSearchQuery] = useState(""); // Arama filtresi (Ferhat)
 
   // Fiyat ve grafik trendi durumlarını COINS listesinden dinamik üretiyoruz (Ferhat)
   const [prices, setPrices] = useState(() => {
@@ -1399,25 +1745,63 @@ function Dashboard({ session, onLogout, onAccountDeleted }) {
   const handleNavigate = (key) => {
     setView(key);
     setSelectedCoin(null);
+    setSearchQuery(""); // Sayfa degisince aramayi sifirla (Ferhat)
   };
 
+  // Dinamik arama filtreleme mantiklari (Ferhat)
+  const filteredCoins = COINS.filter(coin => 
+    coin.symbol.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    coin.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const filteredPortfolioCoins = COINS.filter(coin => 
+    coin.symbol.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    coin.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const filteredTransactions = transactions.filter(tx => 
+    tx.assetName.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    tx.transactionType.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
-    <div className="min-h-screen flex" style={pageBg}>
+    <div className="h-screen overflow-hidden flex" style={pageBg}>
       <Sidebar
         active={view === "detail" ? "home" : view}
         onNavigate={handleNavigate}
         username={username}
         onLogout={onLogout}
         onOpenAccount={() => setAccountOpen(true)}
+        lang={lang}
       />
 
-      <div className="flex-1 flex flex-col">
-        <MobileNav active={view === "detail" ? "home" : view} onNavigate={handleNavigate} />
+      <div className="flex-1 flex flex-col h-full overflow-hidden">
+        <MobileNav active={view === "detail" ? "home" : view} onNavigate={handleNavigate} lang={lang} />
+        
+        <Header
+          view={view}
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          theme={theme}
+          setTheme={setTheme}
+          lang={lang}
+          setLang={setLang}
+        />
+
         <div
-          className="flex-1 p-6 md:p-8 transition-[padding] duration-300"
-          style={{ color: COLORS.textMain, minHeight: 640, paddingRight: aiOpen ? "min(300px, 30vw)" : undefined }}
+          className="flex-1 p-6 md:p-8 overflow-y-auto transition-[padding] duration-300"
+          style={{ color: COLORS.textMain, paddingRight: aiOpen ? "min(300px, 30vw)" : undefined }}
         >
-          {view === "home" && <HomeView prices={prices} lastPrices={lastPrices} history={homeHistory} onInspect={handleInspect} />}
+          {view === "home" && (
+            <HomeView
+              prices={prices}
+              lastPrices={lastPrices}
+              history={homeHistory}
+              onInspect={handleInspect}
+              coins={filteredCoins}
+              lang={lang}
+            />
+          )}
 
           {view === "detail" && selectedCoin && (
             <CoinDetailView
@@ -1430,15 +1814,16 @@ function Dashboard({ session, onLogout, onAccountDeleted }) {
               token={token}
               onBack={() => { setView("home"); setSelectedCoin(null); }}
               onTraded={handleTraded}
+              lang={lang}
             />
           )}
 
-          {view === "portfolio" && <PortfolioView wallet={wallet} walletError={walletError} prices={prices} />}
-          {view === "history" && <HistoryView transactions={transactions} error={transactionsError} loading={transactionsLoading} />}
+          {view === "portfolio" && <PortfolioView wallet={wallet} walletError={walletError} prices={prices} coins={filteredPortfolioCoins} lang={lang} />}
+          {view === "history" && <HistoryView transactions={filteredTransactions} error={transactionsError} loading={transactionsLoading} lang={lang} />}
         </div>
       </div>
 
-      <AiWidget token={token} open={aiOpen} onOpenChange={setAiOpen} />
+      <AiWidget token={token} open={aiOpen} onOpenChange={setAiOpen} lang={lang} />
 
       {accountOpen && (
         <AccountPanel
@@ -1447,6 +1832,10 @@ function Dashboard({ session, onLogout, onAccountDeleted }) {
           userId={userId}
           onClose={() => setAccountOpen(false)}
           onAccountDeleted={onAccountDeleted}
+          lang={lang}
+          wallet={wallet}
+          transactions={transactions}
+          prices={prices}
         />
       )}
     </div>
@@ -1515,6 +1904,66 @@ export default function App() {
   const [expiredNotice, setExpiredNotice] = useState(false);
   const [showLoadingScreen, setShowLoadingScreen] = useState(false); //  yukleniyor ekrani (Ege)
 
+  // Tema ve dil secenekleri (Ferhat)
+  const [theme, setTheme] = useState(() => {
+    const saved = localStorage.getItem("copcoin_theme");
+    return (saved === "light" || saved === "dark") ? saved : "dark";
+  });
+  const [lang, setLang] = useState(() => {
+    const saved = localStorage.getItem("copcoin_lang");
+    if (saved) {
+      const upper = saved.toUpperCase();
+      if (upper === "TR" || upper === "EN") return upper;
+    }
+    return "TR";
+  });
+
+  // Tema CSS degiskenleri guncelleme effekti (Ferhat)
+  useEffect(() => {
+    localStorage.setItem("copcoin_theme", theme);
+    const root = document.documentElement;
+    if (theme === "light") {
+      root.style.setProperty("--color-bg", "#f4f6f8");
+      root.style.setProperty("--color-sidebar", "#ffffff");
+      root.style.setProperty("--color-card", "#ffffff");
+      root.style.setProperty("--color-card-border", "#e2e8f0");
+      root.style.setProperty("--color-card-border-hover", "#cbd5e1");
+      root.style.setProperty("--color-input-bg", "#f8fafc");
+      root.style.setProperty("--color-input-border", "#cbd5e1");
+      root.style.setProperty("--color-text-main", "#0f172a");
+      root.style.setProperty("--color-text-muted", "#64748b");
+      root.style.setProperty("--color-error-bg", "#fef2f2");
+      root.style.setProperty("--color-error-border", "#fee2e2");
+      root.style.setProperty("--color-error-text", "#dc2626");
+      root.style.setProperty("--color-success-bg", "#f0fdf4");
+      root.style.setProperty("--color-success-border", "#dcfce7");
+      root.style.setProperty("--color-success-text", "#16a34a");
+      root.style.setProperty("--color-page-bg", "radial-gradient(circle at 15% 0%, rgba(253,199,0,0.04), transparent 40%), radial-gradient(circle at 85% 100%, rgba(253,199,0,0.02), transparent 45%), #f4f6f8");
+    } else {
+      root.style.setProperty("--color-bg", "#000000");
+      root.style.setProperty("--color-sidebar", "#0a0a0a");
+      root.style.setProperty("--color-card", "#0a0a0a");
+      root.style.setProperty("--color-card-border", "#1c1c1c");
+      root.style.setProperty("--color-card-border-hover", "#2c2c2c");
+      root.style.setProperty("--color-input-bg", "#121212");
+      root.style.setProperty("--color-input-border", "#232323");
+      root.style.setProperty("--color-text-main", "#ffffff");
+      root.style.setProperty("--color-text-muted", "#8a8a8a");
+      root.style.setProperty("--color-error-bg", "#220d0e");
+      root.style.setProperty("--color-error-border", "#3a1416");
+      root.style.setProperty("--color-error-text", "#ff583c");
+      root.style.setProperty("--color-success-bg", "#0d2214");
+      root.style.setProperty("--color-success-border", "#163a1e");
+      root.style.setProperty("--color-success-text", "#4ade80");
+      root.style.setProperty("--color-page-bg", "radial-gradient(circle at 15% 0%, rgba(253,199,0,0.05), transparent 40%), radial-gradient(circle at 85% 100%, rgba(253,199,0,0.04), transparent 45%), #000000");
+    }
+  }, [theme]);
+
+  // Dil secimi kaydetme effekti (Ferhat)
+  useEffect(() => {
+    localStorage.setItem("copcoin_lang", lang);
+  }, [lang]);
+
   const handleAuthed = (s) => {
     setSession(s);
     setExpiredNotice(false);
@@ -1533,14 +1982,11 @@ export default function App() {
     setSession(null);
   };
 
-  // hesap silindiginde backend zaten oturumu Redis'ten temizliyor, burada sadece local session'i sifirliyoruz
   const handleAccountDeleted = () => {
     sessionStorage.removeItem(SESSION_KEY);
     setSession(null);
   };
 
-  // herhangi bir istek 401 donerse (token suresi dolmus/gecersiz) otomatik cikis yapip
-  // kullaniciya net bir uyari gosteriyoruz, "Unauthorized" gibi teknik bir yazi yerine
   useEffect(() => {
     sessionExpiredHandler = () => {
       sessionStorage.removeItem(SESSION_KEY);
@@ -1560,10 +2006,42 @@ export default function App() {
       input[type=number] {
         -moz-appearance: textfield;
       }
+      @keyframes copcoin-dot-pulse {
+        0%, 100% { opacity: 0.45; transform: scale(0.85); }
+        50% { opacity: 1; transform: scale(1.1); }
+      }
+      /* Custom Premium Scrollbar (Ferhat) */
+      ::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+      }
+      ::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: var(--color-input-border, #2c2c2c);
+        border-radius: 4px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: var(--color-text-muted, #8a8a8a);
+      }
     `}</style>
   );
 
-  if (!session) return (<>{numberInputStyle}<AuthScreen onAuthed={handleAuthed} expiredNotice={expiredNotice} /></>);
+  if (!session) return (<>{numberInputStyle}<AuthScreen onAuthed={handleAuthed} expiredNotice={expiredNotice} lang={lang} setLang={setLang} theme={theme} setTheme={setTheme} /></>);
   if (showLoadingScreen) return (<>{numberInputStyle}<LoadingScreen /></>);
-  return (<>{numberInputStyle}<Dashboard session={session} onLogout={handleLogout} onAccountDeleted={handleAccountDeleted} /></>);
+  return (
+    <>
+      {numberInputStyle}
+      <Dashboard
+        session={session}
+        onLogout={handleLogout}
+        onAccountDeleted={handleAccountDeleted}
+        theme={theme}
+        setTheme={setTheme}
+        lang={lang}
+        setLang={setLang}
+      />
+    </>
+  );
 }
