@@ -5,8 +5,8 @@ INSERT INTO users (id, username, password, balance)
 VALUES (1, 'emir_alici', 'pass123', 10000.00) 
 ON CONFLICT (id) DO NOTHING;
 
-INSERT INTO user_wallets (id, user_id, usdt_balance, btc_balance, eth_balance) 
-VALUES (1, 1, 10000.00, 0.00, 0.00) 
+INSERT INTO user_wallets (id, user_id, usdt_balance, btc_balance, eth_balance, sol_balance, doge_balance, ada_balance, xrp_balance, dot_balance, avax_balance, link_balance, shib_balance) 
+VALUES (1, 1, 10000.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00) 
 ON CONFLICT (id) DO NOTHING;
 
 
@@ -17,8 +17,8 @@ INSERT INTO users (id, username, password, balance)
 VALUES (2, 'ferhat_satici', 'pass123', 0.00) 
 ON CONFLICT (id) DO NOTHING;
 
-INSERT INTO user_wallets (id, user_id, usdt_balance, btc_balance, eth_balance) 
-VALUES (2, 2, 0.00, 2.50, 10.00) 
+INSERT INTO user_wallets (id, user_id, usdt_balance, btc_balance, eth_balance, sol_balance, doge_balance, ada_balance, xrp_balance, dot_balance, avax_balance, link_balance, shib_balance) 
+VALUES (2, 2, 0.00, 2.50, 10.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00) 
 ON CONFLICT (id) DO NOTHING;
 
 
@@ -29,8 +29,8 @@ INSERT INTO users (id, username, password, balance)
 VALUES (3, 'bakiye_yok', 'pass123', 0.00) 
 ON CONFLICT (id) DO NOTHING;
 
-INSERT INTO user_wallets (id, user_id, usdt_balance, btc_balance, eth_balance) 
-VALUES (3, 3, 0.00, 0.00, 0.00) 
+INSERT INTO user_wallets (id, user_id, usdt_balance, btc_balance, eth_balance, sol_balance, doge_balance, ada_balance, xrp_balance, dot_balance, avax_balance, link_balance, shib_balance) 
+VALUES (3, 3, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00) 
 ON CONFLICT (id) DO NOTHING;
 
 

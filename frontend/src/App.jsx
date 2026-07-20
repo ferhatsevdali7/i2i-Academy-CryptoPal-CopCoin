@@ -42,6 +42,14 @@ const pageBg = {
 const COINS = [
   { symbol: "BTC", name: "Bitcoin", badgeBg: "#f7931a" },
   { symbol: "ETH", name: "Ethereum", badgeBg: "#8a92b2" },
+  { symbol: "SOL", name: "Solana", badgeBg: "#800080" },      // Yeni eklenen Solana (Ferhat)
+  { symbol: "DOGE", name: "Dogecoin", badgeBg: "#c2a633" },   // Yeni eklenen Dogecoin (Ferhat)
+  { symbol: "ADA", name: "Cardano", badgeBg: "#0033ad" },     // Yeni eklenen Cardano (Ferhat)
+  { symbol: "XRP", name: "Ripple", badgeBg: "#23292f" },      // Yeni eklenen Ripple (Ferhat)
+  { symbol: "DOT", name: "Polkadot", badgeBg: "#e6007a" },    // Yeni eklenen Polkadot (Ferhat)
+  { symbol: "AVAX", name: "Avalanche", badgeBg: "#e84142" },  // Yeni eklenen Avalanche (Ferhat)
+  { symbol: "LINK", name: "Chainlink", badgeBg: "#2a5ada" },  // Yeni eklenen Chainlink (Ferhat)
+  { symbol: "SHIB", name: "Shiba Inu", badgeBg: "#ffaa00" },  // Yeni eklenen Shiba Inu (Ferhat)
 ];
 
 //SHARED UI 
@@ -705,36 +713,64 @@ function CoinDetailView({ coin, price, lastPrice, history, historyLoading, userI
 
 function PortfolioView({ wallet, walletError, prices }) {
   const usdt = wallet ? parseFloat(wallet.usdtBalance || 0) : 0;
-  const btcQty = wallet ? parseFloat(wallet.btcBalance || 0) : 0;
-  const ethQty = wallet ? parseFloat(wallet.ethBalance || 0) : 0;
-  const totalValue = usdt + btcQty * (prices.BTC || 0) + ethQty * (prices.ETH || 0);
+  
+  // Dynamic portföy toplam değeri hesaplama (Ferhat)
+  let totalCryptoValue = 0;
+  if (wallet && prices) {
+    COINS.forEach(coin => {
+      const fieldName = coin.symbol.toLowerCase() + "Balance";
+      const qty = parseFloat(wallet[fieldName] || 0);
+      const price = prices[coin.symbol] || 0;
+      totalCryptoValue += qty * price;
+    });
+  }
+  const totalValue = usdt + totalCryptoValue;
+
+  // Dynamic portföy listesi oluşturma (Ferhat)
+  const rows = [
+    { label: "USDT (Nakit)", badge: <AssetBadge label="$" bg={COLORS.yellow} />, qty: fmtUsd(usdt), val: null }
+  ];
+
+  if (wallet) {
+    COINS.forEach(coin => {
+      const fieldName = coin.symbol.toLowerCase() + "Balance";
+      const qty = parseFloat(wallet[fieldName] || 0);
+      const price = prices[coin.symbol] || 0;
+      const val = qty * price;
+      
+      rows.push({
+        label: coin.symbol,
+        badge: <AssetBadge label={coin.symbol[0]} bg={coin.badgeBg} />,
+        qty: qty.toFixed(6) + " " + coin.symbol,
+        val: fmtUsd(val)
+      });
+    });
+  }
 
   return (
     <div className="max-w-[1000px] w-full mx-auto">
       <h1 className="text-2xl font-bold mb-1" style={{ color: COLORS.textMain, letterSpacing: "-0.02em" }}>Portföyüm</h1>
       <p className="text-sm mb-6" style={{ color: COLORS.textMuted }}>Nakit bakiyen ve sahip olduğun varlıklar.</p>
 
-      <Card height={480}>
+      <Card height={650}> {/* Card yüksekliğini 10 coin sığsın diye biraz artırdık (Ferhat) */}
         <div className="text-3xl font-bold mb-1" style={{ letterSpacing: "-0.02em", color: COLORS.textMain }}>{fmtUsd(totalValue)}</div>
-        <div className="text-[13px] mb-5" style={{ color: COLORS.textMuted }}>Toplam Portföy Değeri (USDT + BTC + ETH)</div>
+        <div className="text-[13px] mb-5" style={{ color: COLORS.textMuted }}>Toplam Portföy Değeri (USDT + Kriptolar)</div>
 
-        {[
-          { label: "USDT (Nakit)", badge: <AssetBadge label="$" bg={COLORS.yellow} />, qty: fmtUsd(usdt), val: null },
-          { label: "BTC", badge: <AssetBadge label="B" bg="#f7931a" />, qty: btcQty.toFixed(6) + " BTC", val: fmtUsd(btcQty * (prices.BTC || 0)) },
-          { label: "ETH", badge: <AssetBadge label="E" bg="#8a92b2" />, qty: ethQty.toFixed(6) + " ETH", val: fmtUsd(ethQty * (prices.ETH || 0)) },
-        ].map((row, i, arr) => (
-          <div
-            key={row.label}
-            className="flex justify-between items-center py-3 text-sm"
-            style={{ borderBottom: i < arr.length - 1 ? `1px solid ${COLORS.cardBorder}` : "none" }}
-          >
-            <div className="flex items-center gap-2.5 font-semibold" style={{ color: COLORS.textMain }}>{row.badge}{row.label}</div>
-            <div className="text-right">
-              <div style={{ color: COLORS.textMain }}>{row.qty}</div>
-              {row.val && <div className="text-[12.5px]" style={{ color: COLORS.textMuted }}>{row.val}</div>}
+        <div className="overflow-y-auto pr-1" style={{ maxHeight: "480px" }}> {/* Kaydırma alanı ekledik (Ferhat) */}
+          {rows.map((row, i, arr) => (
+            <div
+              key={row.label}
+              className="flex justify-between items-center py-3 text-sm"
+              style={{ borderBottom: i < arr.length - 1 ? `1px solid ${COLORS.cardBorder}` : "none" }}
+            >
+              <div className="flex items-center gap-2.5 font-semibold" style={{ color: COLORS.textMain }}>{row.badge}{row.label}</div>
+              <div className="text-right">
+                <div style={{ color: COLORS.textMain }}>{row.qty}</div>
+                {row.val && <div className="text-[12.5px]" style={{ color: COLORS.textMuted }}>{row.val}</div>}
+              </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
         <MessageBox text={walletError} type="error" />
       </Card>
     </div>
@@ -1205,15 +1241,32 @@ function AccountPanel({ token, username, userId, onClose, onAccountDeleted }) {
 function Dashboard({ session, onLogout, onAccountDeleted }) {
   const { token, username, userId } = session;
 
-  const [view, setView] = useState("home"); // home | portfolio | history | ai
-  const [selectedCoin, setSelectedCoin] = useState(null);
+  const [view, setView] = useState(() => {
+    return sessionStorage.getItem("copcoin_view") || "home"; // F5 yenilemesinde hangi sayfada kaldiysak oradan acilsin (Ferhat)
+  });
+  const [selectedCoin, setSelectedCoin] = useState(() => {
+    return sessionStorage.getItem("copcoin_selected_coin") || null; // F5 atinca secili coini korumak icin (Ferhat)
+  });
   const [accountOpen, setAccountOpen] = useState(false);
   const [aiOpen, setAiOpen] = useState(false); // AI paneli acikken icerigi gercek bos alana gore ortalamak icin (Ege)
 
-  const [prices, setPrices] = useState({ BTC: 0, ETH: 0 });
-  const [lastPrices, setLastPrices] = useState({ BTC: null, ETH: null });
+  // Fiyat ve grafik trendi durumlarını COINS listesinden dinamik üretiyoruz (Ferhat)
+  const [prices, setPrices] = useState(() => {
+    const p = {};
+    COINS.forEach(c => p[c.symbol] = 0);
+    return p;
+  });
+  const [lastPrices, setLastPrices] = useState(() => {
+    const lp = {};
+    COINS.forEach(c => lp[c.symbol] = null);
+    return lp;
+  });
 
-  const [homeHistory, setHomeHistory] = useState({ BTC: [], ETH: [] });
+  const [homeHistory, setHomeHistory] = useState(() => {
+    const h = {};
+    COINS.forEach(c => h[c.symbol] = []);
+    return h;
+  });
   const [detailHistory, setDetailHistory] = useState([]);
   const [detailHistoryLoading, setDetailHistoryLoading] = useState(false);
 
@@ -1224,15 +1277,29 @@ function Dashboard({ session, onLogout, onAccountDeleted }) {
   const [transactionsError, setTransactionsError] = useState("");
   const [transactionsLoading, setTransactionsLoading] = useState(true);
 
+  // F5 yenilemesinde sayfa durumunu kaydetmek için useEffect (Ferhat)
+  useEffect(() => {
+    sessionStorage.setItem("copcoin_view", view);
+    if (selectedCoin) {
+      sessionStorage.setItem("copcoin_selected_coin", selectedCoin);
+    } else {
+      sessionStorage.removeItem("copcoin_selected_coin");
+    }
+  }, [view, selectedCoin]);
+
   const loadPrices = useCallback(async () => {
     try {
       const res = await fetch(`${API_BASE}/api/market/prices`);
       const data = await res.json();
-      const btc = parseFloat(data.BTC);
-      const eth = parseFloat(data.ETH);
       setPrices((prevPrices) => {
-        setLastPrices({ BTC: prevPrices.BTC || null, ETH: prevPrices.ETH || null });
-        return { BTC: btc, ETH: eth };
+        const newLastPrices = {};
+        const newPrices = {};
+        COINS.forEach(c => {
+          newLastPrices[c.symbol] = prevPrices[c.symbol] || null;
+          newPrices[c.symbol] = parseFloat(data[c.symbol] || 0);
+        });
+        setLastPrices(newLastPrices);
+        return newPrices;
       });
     } catch (err) {
       // fiyat çekilemezse sessiz geç
@@ -1241,13 +1308,17 @@ function Dashboard({ session, onLogout, onAccountDeleted }) {
 
   const loadHomeHistory = useCallback(async () => {
     try {
-      const [btcRes, ethRes] = await Promise.all([
-        fetch(`${API_BASE}/api/market/history?asset=BTC`),
-        fetch(`${API_BASE}/api/market/history?asset=ETH`),
-      ]);
-      const btcData = await btcRes.json();
-      const ethData = await ethRes.json();
-      setHomeHistory({ BTC: btcData.slice(-30), ETH: ethData.slice(-30) });
+      // Tüm coinlerin grafik geçmişini paralel şekilde yüklüyoruz (Ferhat)
+      const promises = COINS.map(c => 
+        fetch(`${API_BASE}/api/market/history?asset=${c.symbol}`).then(r => r.json())
+      );
+      const histories = await Promise.all(promises);
+      
+      const newHistory = {};
+      COINS.forEach((c, idx) => {
+        newHistory[c.symbol] = histories[idx].slice(-30);
+      });
+      setHomeHistory(newHistory);
     } catch (err) {}
   }, []);
 
@@ -1457,6 +1528,8 @@ export default function App() {
       await apiFetch(`${API_BASE}/api/auth/logout`, { method: "POST" });
     } catch (e) {}
     sessionStorage.removeItem(SESSION_KEY);
+    sessionStorage.removeItem("copcoin_view");          // oturum kapatınca view temizlensin (Ferhat)
+    sessionStorage.removeItem("copcoin_selected_coin");  // oturum kapatınca coin temizlensin (Ferhat)
     setSession(null);
   };
 

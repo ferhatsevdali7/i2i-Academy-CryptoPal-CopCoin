@@ -34,12 +34,12 @@ public class PriceController {
     public ResponseEntity<Map<String, String>> getCurrentPrices() {
         Map<String, String> prices = new HashMap<>();
         
-        String btcPrice = redisTemplate.opsForValue().get("BTC");
-        String ethPrice = redisTemplate.opsForValue().get("ETH");
-
-        // Redis boşsa veya henüz başlamadıysa null dönüp frontend'i çökertmesin diye koruma
-        prices.put("BTC", btcPrice != null ? btcPrice : "0.00");
-        prices.put("ETH", ethPrice != null ? ethPrice : "0.00");
+        // Tüm kripto paraların anlık fiyatlarını Redis'ten çekiyoruz (Ferhat)
+        String[] symbols = {"BTC", "ETH", "SOL", "DOGE", "ADA", "XRP", "DOT", "AVAX", "LINK", "SHIB"};
+        for (String symbol : symbols) {
+            String val = redisTemplate.opsForValue().get(symbol);
+            prices.put(symbol, val != null ? val : "0.00");
+        }
 
         return ResponseEntity.ok(prices);
     }

@@ -101,22 +101,77 @@ public class WalletService {
                 wallet.setBtcBalance(wallet.getBtcBalance().add(request.getAmount()));
             } else if ("ETH".equalsIgnoreCase(coinKey)) {
                 wallet.setEthBalance(wallet.getEthBalance().add(request.getAmount()));
+            } else if ("SOL".equalsIgnoreCase(coinKey)) {
+                wallet.setSolBalance(wallet.getSolBalance().add(request.getAmount())); // Yeni eklenen Solana alım mantığı (Ferhat)
+            } else if ("DOGE".equalsIgnoreCase(coinKey)) {
+                wallet.setDogeBalance(wallet.getDogeBalance().add(request.getAmount())); // Yeni eklenen Dogecoin alım mantığı (Ferhat)
+            } else if ("ADA".equalsIgnoreCase(coinKey)) {
+                wallet.setAdaBalance(wallet.getAdaBalance().add(request.getAmount())); // Yeni eklenen Cardano alım mantığı (Ferhat)
+            } else if ("XRP".equalsIgnoreCase(coinKey)) {
+                wallet.setXrpBalance(wallet.getXrpBalance().add(request.getAmount())); // Yeni eklenen Ripple alım mantığı (Ferhat)
+            } else if ("DOT".equalsIgnoreCase(coinKey)) {
+                wallet.setDotBalance(wallet.getDotBalance().add(request.getAmount())); // Yeni eklenen Polkadot alım mantığı (Ferhat)
+            } else if ("AVAX".equalsIgnoreCase(coinKey)) {
+                wallet.setAvaxBalance(wallet.getAvaxBalance().add(request.getAmount())); // Yeni eklenen Avalanche alım mantığı (Ferhat)
+            } else if ("LINK".equalsIgnoreCase(coinKey)) {
+                wallet.setLinkBalance(wallet.getLinkBalance().add(request.getAmount())); // Yeni eklenen Chainlink alım mantığı (Ferhat)
+            } else if ("SHIB".equalsIgnoreCase(coinKey)) {
+                wallet.setShibBalance(wallet.getShibBalance().add(request.getAmount())); // Yeni eklenen Shiba Inu alım mantığı (Ferhat)
             } else {
-                throw new IllegalArgumentException("Geçersiz coin sembolü! Sadece BTC veya ETH işlem görebilir.");  // güncellendi (Ferhat)
+                throw new IllegalArgumentException("Geçersiz coin sembolü! Bu kripto para işlem göremez.");  // güncellendi (Ferhat)
             }
         } 
         // 4. SELL (Satım) İşlemi İş Mantığı
         else if ("SELL".equalsIgnoreCase(request.getAction())) {
-            if ("BTC".equalsIgnoreCase(coinKey) && wallet.getBtcBalance().compareTo(request.getAmount()) < 0) {
-                throw new IllegalArgumentException("Yetersiz BTC varlığı!"); //güncellendi (ferhat)
-            } else if ("ETH".equalsIgnoreCase(coinKey) && wallet.getEthBalance().compareTo(request.getAmount()) < 0) {
-                throw new IllegalArgumentException("Yetersiz ETH varlığı!");  // güncelledim(ferhst)
+            BigDecimal userBalance = BigDecimal.ZERO;
+            if ("BTC".equalsIgnoreCase(coinKey)) {
+                userBalance = wallet.getBtcBalance();
+            } else if ("ETH".equalsIgnoreCase(coinKey)) {
+                userBalance = wallet.getEthBalance();
+            } else if ("SOL".equalsIgnoreCase(coinKey)) {
+                userBalance = wallet.getSolBalance(); // Yeni eklenen Solana satım kontrolü (Ferhat)
+            } else if ("DOGE".equalsIgnoreCase(coinKey)) {
+                userBalance = wallet.getDogeBalance(); // Yeni eklenen Dogecoin satım kontrolü (Ferhat)
+            } else if ("ADA".equalsIgnoreCase(coinKey)) {
+                userBalance = wallet.getAdaBalance(); // Yeni eklenen Cardano satım kontrolü (Ferhat)
+            } else if ("XRP".equalsIgnoreCase(coinKey)) {
+                userBalance = wallet.getXrpBalance(); // Yeni eklenen Ripple satım kontrolü (Ferhat)
+            } else if ("DOT".equalsIgnoreCase(coinKey)) {
+                userBalance = wallet.getDotBalance(); // Yeni eklenen Polkadot satım kontrolü (Ferhat)
+            } else if ("AVAX".equalsIgnoreCase(coinKey)) {
+                userBalance = wallet.getAvaxBalance(); // Yeni eklenen Avalanche satım kontrolü (Ferhat)
+            } else if ("LINK".equalsIgnoreCase(coinKey)) {
+                userBalance = wallet.getLinkBalance(); // Yeni eklenen Chainlink satım kontrolü (Ferhat)
+            } else if ("SHIB".equalsIgnoreCase(coinKey)) {
+                userBalance = wallet.getShibBalance(); // Yeni eklenen Shiba Inu satım kontrolü (Ferhat)
+            } else {
+                throw new IllegalArgumentException("Geçersiz coin sembolü!");
+            }
+
+            if (userBalance == null || userBalance.compareTo(request.getAmount()) < 0) {
+                throw new IllegalArgumentException("Yetersiz " + coinKey + " varlığı!"); // güncellendi (Ferhat)
             }
 
             if ("BTC".equalsIgnoreCase(coinKey)) {
                 wallet.setBtcBalance(wallet.getBtcBalance().subtract(request.getAmount()));
             } else if ("ETH".equalsIgnoreCase(coinKey)) {
                 wallet.setEthBalance(wallet.getEthBalance().subtract(request.getAmount()));
+            } else if ("SOL".equalsIgnoreCase(coinKey)) {
+                wallet.setSolBalance(wallet.getSolBalance().subtract(request.getAmount())); // Yeni eklenen Solana bakiye düşümü (Ferhat)
+            } else if ("DOGE".equalsIgnoreCase(coinKey)) {
+                wallet.setDogeBalance(wallet.getDogeBalance().subtract(request.getAmount())); // Yeni eklenen Dogecoin bakiye düşümü (Ferhat)
+            } else if ("ADA".equalsIgnoreCase(coinKey)) {
+                wallet.setAdaBalance(wallet.getAdaBalance().subtract(request.getAmount())); // Yeni eklenen Cardano bakiye düşümü (Ferhat)
+            } else if ("XRP".equalsIgnoreCase(coinKey)) {
+                wallet.setXrpBalance(wallet.getXrpBalance().subtract(request.getAmount())); // Yeni eklenen Ripple bakiye düşümü (Ferhat)
+            } else if ("DOT".equalsIgnoreCase(coinKey)) {
+                wallet.setDotBalance(wallet.getDotBalance().subtract(request.getAmount())); // Yeni eklenen Polkadot bakiye düşümü (Ferhat)
+            } else if ("AVAX".equalsIgnoreCase(coinKey)) {
+                wallet.setAvaxBalance(wallet.getAvaxBalance().subtract(request.getAmount())); // Yeni eklenen Avalanche bakiye düşümü (Ferhat)
+            } else if ("LINK".equalsIgnoreCase(coinKey)) {
+                wallet.setLinkBalance(wallet.getLinkBalance().subtract(request.getAmount())); // Yeni eklenen Chainlink bakiye düşümü (Ferhat)
+            } else if ("SHIB".equalsIgnoreCase(coinKey)) {
+                wallet.setShibBalance(wallet.getShibBalance().subtract(request.getAmount())); // Yeni eklenen Shiba Inu bakiye düşümü (Ferhat)
             }
 
             wallet.setUsdtBalance(wallet.getUsdtBalance().add(totalCost));

@@ -15,6 +15,14 @@ CREATE TABLE IF NOT EXISTS user_wallets (
     usdt_balance NUMERIC(18, 2) NOT NULL DEFAULT 0.00,
     btc_balance NUMERIC(18, 8) NOT NULL DEFAULT 0.00000000,
     eth_balance NUMERIC(18, 8) NOT NULL DEFAULT 0.00000000,
+    sol_balance NUMERIC(18, 8) NOT NULL DEFAULT 0.00000000,  -- Yeni eklenen Solana bakiyesi (Ferhat)
+    doge_balance NUMERIC(18, 8) NOT NULL DEFAULT 0.00000000, -- Yeni eklenen Dogecoin bakiyesi (Ferhat)
+    ada_balance NUMERIC(18, 8) NOT NULL DEFAULT 0.00000000,  -- Yeni eklenen Cardano bakiyesi (Ferhat)
+    xrp_balance NUMERIC(18, 8) NOT NULL DEFAULT 0.00000000,  -- Yeni eklenen Ripple bakiyesi (Ferhat)
+    dot_balance NUMERIC(18, 8) NOT NULL DEFAULT 0.00000000,  -- Yeni eklenen Polkadot bakiyesi (Ferhat)
+    avax_balance NUMERIC(18, 8) NOT NULL DEFAULT 0.00000000, -- Yeni eklenen Avalanche bakiyesi (Ferhat)
+    link_balance NUMERIC(18, 8) NOT NULL DEFAULT 0.00000000, -- Yeni eklenen Chainlink bakiyesi (Ferhat)
+    shib_balance NUMERIC(18, 8) NOT NULL DEFAULT 0.00000000, -- Yeni eklenen Shiba Inu bakiyesi (Ferhat)
     CONSTRAINT fk_wallet_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
