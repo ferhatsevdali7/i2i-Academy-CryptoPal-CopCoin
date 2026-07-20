@@ -666,39 +666,308 @@ function HomeView({ prices, lastPrices, history, onInspect, coins = COINS, lang 
 
 // coin detay al sat
 
-function LineChart({ points }) {
+function LineChart({ points, mainSymbol, compareList = [], compareData = {}, lang }) {
+  const [highlightedSymbol, setHighlightedSymbol] = useState(null);
+  const [hoveredPoint, setHoveredPoint] = useState(null);
+
   if (!points || points.length < 2) {
     return (
       <div className="flex items-center justify-center" style={{ height: 220, color: COLORS.textMuted, fontSize: 13 }}>
-        Grafik verisi henüz oluşuyor...
+        {lang === "TR" ? "Grafik verisi yükleniyor..." : "Loading chart data..."}
       </div>
     );
   }
-  const prices = points.map((p) => parseFloat(p.price));
-  const min = Math.min(...prices);
-  const max = Math.max(...prices);
-  const range = max - min || 1;
-  const w = 700, h = 220, pad = 10;
-  const step = (w - pad * 2) / (prices.length - 1);
-  const coords = prices.map((p, i) => [pad + i * step, h - pad - ((p - min) / range) * (h - pad * 2)]);
-  const linePath = coords.map(([x, y], i) => `${i === 0 ? "M" : "L"} ${x.toFixed(1)} ${y.toFixed(1)}`).join(" ");
-  const areaPath = `${linePath} L ${coords[coords.length - 1][0].toFixed(1)} ${h} L ${coords[0][0].toFixed(1)} ${h} Z`;
-  const up = prices[prices.length - 1] >= prices[0];
-  const lineColor = up ? COLORS.successText : COLORS.errorText;
+
+  const formatTime = (isoStr) => {
+    if (!isoStr) return "";
+    try {
+      const d = new Date(isoStr);
+      const pad = (n) => String(n).padStart(2, "0");
+      return `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+    } catch (e) {
+      return "";
+    }
+  };
+
+  const mainPrices = points.map((p) => parseFloat(p.price));
+  const w = 700, h = 200, pad = 12;
+  const step = (w - pad * 2) / (mainPrices.length - 1);
+
+  // Karsilastirma aktif degilse eski fiyata dayali cizim aynen korunur (Tooltip dahil edilerek)
+  if (!compareList || compareList.length === 0) {
+    const min = Math.min(...mainPrices);
+    const max = Math.max(...mainPrices);
+    const range = max - min || 1;
+    const coords = mainPrices.map((p, i) => [pad + i * step, h - pad - ((p - min) / range) * (h - pad * 2)]);
+    const linePath = coords.map(([x, y], i) => `${i === 0 ? "M" : "L"} ${x.toFixed(1)} ${y.toFixed(1)}`).join(" ");
+    const areaPath = `${linePath} L ${coords[coords.length - 1][0].toFixed(1)} ${h} L ${coords[0][0].toFixed(1)} ${h} Z`;
+    const up = mainPrices[mainPrices.length - 1] >= mainPrices[0];
+    const lineColor = up ? COLORS.successText : COLORS.errorText;
+
+    const tooltipTop = hoveredPoint && (hoveredPoint.y < 65 ? hoveredPoint.y + 15 : hoveredPoint.y - 65);
+
+    return (
+      <div className="flex flex-col gap-3" style={{ position: "relative" }}>
+        <svg viewBox={`0 0 ${w} ${h}`} style={{ width: "100%", height: 220 }} preserveAspectRatio="none">
+          <defs>
+            <linearGradient id="chartFadeSingle" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor={lineColor} stopOpacity="0.22" />
+              <stop offset="100%" stopColor={lineColor} stopOpacity="0" />
+            </linearGradient>
+          </defs>
+          <path d={areaPath} fill="url(#chartFadeSingle)" stroke="none" />
+          <path d={linePath} fill="none" stroke={lineColor} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+
+          {/* Tooltip trigger circles */}
+          {coords.map(([cx, cy], idx) => (
+            <circle
+              key={idx}
+              cx={cx.toFixed(1)}
+              cy={cy.toFixed(1)}
+              r="6"
+              fill="transparent"
+              className="cursor-pointer"
+              onMouseEnter={() => setHoveredPoint({
+                symbol: mainSymbol,
+                price: mainPrices[idx],
+                time: formatTime(points[idx]?.createdAt),
+                x: cx,
+                y: cy,
+                color: lineColor
+              })}
+              onMouseLeave={() => setHoveredPoint(null)}
+            />
+          ))}
+        </svg>
+
+        {/* X Ekseni Zaman Ticks */}
+        <div className="flex justify-between items-center text-[10px] px-2.5 mt-0.5" style={{ color: COLORS.textMuted }}>
+          <span>{formatTime(points[0]?.createdAt)}</span>
+          <span>{formatTime(points[Math.floor(points.length / 2)]?.createdAt)}</span>
+          <span>{formatTime(points[points.length - 1]?.createdAt)}</span>
+        </div>
+
+        {/* Tooltip Box */}
+        {hoveredPoint && (
+          <div
+            className="absolute pointer-events-none rounded-xl p-2.5 text-[11px] border"
+            style={{
+              left: `${(hoveredPoint.x / w) * 100}%`,
+              top: `${tooltipTop}px`,
+              transform: "translateX(-50%)",
+              background: COLORS.card,
+              borderColor: COLORS.cardBorder,
+              boxShadow: "0 10px 25px -5px rgba(0,0,0,0.6)",
+              color: COLORS.textMain,
+              zIndex: 50
+            }}
+          >
+            <div className="flex items-center gap-1.5 font-bold mb-1">
+              <span className="w-2 h-2 rounded-full shrink-0" style={{ background: hoveredPoint.color }} />
+              <span>{hoveredPoint.symbol}</span>
+            </div>
+            <div className="font-semibold text-xs">{fmtUsd(hoveredPoint.price)}</div>
+            <div className="text-[9.5px] mt-1" style={{ color: COLORS.textMuted }}>
+              {hoveredPoint.time}
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // --- Karsilastirma Modu (Yuzdesel Normalizasyon) ---
+  const firstMainPrice = mainPrices[0] || 1;
+  const mainPcts = mainPrices.map((p) => ((p - firstMainPrice) / firstMainPrice) * 100);
+
+  const seriesData = [
+    {
+      symbol: mainSymbol,
+      pcts: mainPcts,
+      color: COINS.find((c) => c.symbol === mainSymbol)?.badgeBg || COLORS.yellow
+    }
+  ];
+
+  compareList.forEach((sym) => {
+    const compPts = compareData[sym];
+    if (compPts && compPts.length >= 2) {
+      const compPrices = compPts.map((p) => parseFloat(p.price));
+      const firstCompPrice = compPrices[0] || 1;
+      const compPcts = compPrices.map((p) => ((p - firstCompPrice) / firstCompPrice) * 100);
+      seriesData.push({
+        symbol: sym,
+        pcts: compPcts,
+        color: COINS.find((c) => c.symbol === sym)?.badgeBg || "#ffffff"
+      });
+    }
+  });
+
+  const allPcts = seriesData.map(s => s.pcts).flat();
+  const minPct = Math.min(...allPcts);
+  const maxPct = Math.max(...allPcts);
+  const rangePct = maxPct - minPct || 1;
+
+  const tooltipTop = hoveredPoint && (hoveredPoint.y < 65 ? hoveredPoint.y + 15 : hoveredPoint.y - 65);
 
   return (
-    <svg viewBox={`0 0 ${w} ${h}`} style={{ width: "100%", height: 220 }} preserveAspectRatio="none">
-      <defs>
-        <linearGradient id="chartFade" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor={lineColor} stopOpacity="0.25" />
-          <stop offset="100%" stopColor={lineColor} stopOpacity="0" />
-        </linearGradient>
-      </defs>
-      <path d={areaPath} fill="url(#chartFade)" stroke="none" />
-      <path d={linePath} fill="none" stroke={lineColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
+    <div className="flex flex-col gap-3" style={{ position: "relative" }}>
+      <svg viewBox={`0 0 ${w} ${h}`} style={{ width: "100%", height: 220 }} preserveAspectRatio="none">
+        {/* Referans sifir cizgisi */}
+        {minPct < 0 && maxPct > 0 && (() => {
+          const zeroY = h - pad - ((0 - minPct) / rangePct) * (h - pad * 2);
+          return (
+            <line
+              x1="0"
+              y1={zeroY.toFixed(1)}
+              x2={w}
+              y2={zeroY.toFixed(1)}
+              stroke={COLORS.cardBorder}
+              strokeDasharray="4,4"
+              strokeWidth="1.2"
+            />
+          );
+        })()}
+
+        {/* Curves drawing with highlights and fades */}
+        {seriesData.map((series) => {
+          const coords = series.pcts.map((pct, i) => [
+            pad + i * step,
+            h - pad - ((pct - minPct) / rangePct) * (h - pad * 2)
+          ]);
+          const linePath = coords.map(([x, y], i) => `${i === 0 ? "M" : "L"} ${x.toFixed(1)} ${y.toFixed(1)}`).join(" ");
+          
+          const isHighlighted = highlightedSymbol === series.symbol;
+          const isAnyHighlighted = highlightedSymbol !== null;
+          const isMuted = isAnyHighlighted && !isHighlighted;
+
+          return (
+            <path
+              key={series.symbol}
+              d={linePath}
+              fill="none"
+              stroke={series.color}
+              strokeWidth={isHighlighted ? "3.2" : "2.2"}
+              opacity={isMuted ? "0.22" : "1"}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              style={{ transition: "stroke-width 0.2s ease, opacity 0.2s ease" }}
+            />
+          );
+        })}
+
+        {/* Hover detection overlay circles across all curves */}
+        {seriesData.map((series) => {
+          const coords = series.pcts.map((pct, i) => [
+            pad + i * step,
+            h - pad - ((pct - minPct) / rangePct) * (h - pad * 2)
+          ]);
+          
+          const isHighlighted = highlightedSymbol === series.symbol;
+          const isAnyHighlighted = highlightedSymbol !== null;
+          const isMuted = isAnyHighlighted && !isHighlighted;
+          if (isMuted) return null; // mute triggers for other paths to avoid clutter
+
+          return coords.map(([cx, cy], idx) => {
+            const originalPoint = (series.symbol === mainSymbol ? points : compareData[series.symbol])[idx];
+            return (
+              <circle
+                key={`${series.symbol}-${idx}`}
+                cx={cx.toFixed(1)}
+                cy={cy.toFixed(1)}
+                r="6"
+                fill="transparent"
+                className="cursor-pointer"
+                onMouseEnter={() => setHoveredPoint({
+                  symbol: series.symbol,
+                  price: parseFloat(originalPoint.price),
+                  pct: series.pcts[idx],
+                  time: formatTime(originalPoint.createdAt),
+                  x: cx,
+                  y: cy,
+                  color: series.color
+                })}
+                onMouseLeave={() => setHoveredPoint(null)}
+              />
+            );
+          });
+        })}
+      </svg>
+
+      {/* X Ekseni Zaman Ticks */}
+      <div className="flex justify-between items-center text-[10px] px-2.5 mt-0.5" style={{ color: COLORS.textMuted }}>
+        <span>{formatTime(points[0]?.createdAt)}</span>
+        <span>{formatTime(points[Math.floor(points.length / 2)]?.createdAt)}</span>
+        <span>{formatTime(points[points.length - 1]?.createdAt)}</span>
+      </div>
+
+      {/* Legend Gostergeleri (Hover Highlight Entegrasyonlu) */}
+      <div className="flex flex-wrap items-center justify-center gap-3 mt-1">
+        {seriesData.map((series) => {
+          const isHighlighted = highlightedSymbol === series.symbol;
+          return (
+            <div
+              key={series.symbol}
+              onMouseEnter={() => setHighlightedSymbol(series.symbol)}
+              onMouseLeave={() => setHighlightedSymbol(null)}
+              className="flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-lg border cursor-pointer select-none transition-all duration-150"
+              style={{
+                borderColor: isHighlighted ? series.color : COLORS.cardBorder,
+                background: isHighlighted ? "rgba(253,199,0,0.06)" : COLORS.inputBg,
+                boxShadow: isHighlighted ? `0 0 10px -3px ${series.color}` : "none",
+                transform: isHighlighted ? "scale(1.04)" : "scale(1)"
+              }}
+            >
+              <span className="w-2.5 h-2.5 rounded-full shrink-0 animate-pulse" style={{ background: series.color, boxShadow: `0 0 6px ${series.color}` }} />
+              <span style={{ color: COLORS.textMain }}>{series.symbol}</span>
+              <span className="text-[10px]" style={{ color: series.pcts[series.pcts.length - 1] >= 0 ? COLORS.successText : COLORS.errorText }}>
+                {(series.pcts[series.pcts.length - 1] >= 0 ? "+" : "")}{series.pcts[series.pcts.length - 1].toFixed(2)}%
+              </span>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Referans Dipnot */}
+      <div className="text-[10px] italic text-center mt-1" style={{ color: COLORS.textMuted }}>
+        {lang === "TR" 
+          ? `* Yüzdeler, grafiğin başlangıç noktası olan ${formatTime(points[0]?.createdAt)} fiyatı referans alınarak hesaplanmıştır.`
+          : `* Percentages are calculated relative to the starting price at ${formatTime(points[0]?.createdAt)}.`}
+      </div>
+
+      {/* Tooltip Box */}
+      {hoveredPoint && (
+        <div
+          className="absolute pointer-events-none rounded-xl p-2.5 text-[11px] border"
+          style={{
+            left: `${(hoveredPoint.x / w) * 100}%`,
+            top: `${tooltipTop}px`,
+            transform: "translateX(-50%)",
+            background: COLORS.card,
+            borderColor: COLORS.cardBorder,
+            boxShadow: "0 10px 25px -5px rgba(0,0,0,0.6)",
+            color: COLORS.textMain,
+            zIndex: 50
+          }}
+        >
+          <div className="flex items-center gap-1.5 font-bold mb-1">
+            <span className="w-2 h-2 rounded-full shrink-0" style={{ background: hoveredPoint.color }} />
+            <span>{hoveredPoint.symbol}</span>
+          </div>
+          <div className="font-semibold text-xs">{fmtUsd(hoveredPoint.price)}</div>
+          {hoveredPoint.pct !== undefined && (
+            <div className="text-[10px] mt-0.5" style={{ color: hoveredPoint.pct >= 0 ? COLORS.successText : COLORS.errorText }}>
+              {hoveredPoint.pct >= 0 ? "+" : ""}{hoveredPoint.pct.toFixed(2)}%
+            </div>
+          )}
+          <div className="text-[9.5px] mt-1" style={{ color: COLORS.textMuted }}>
+            {hoveredPoint.time}
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
+
 
 function CoinDetailView({ coin, price, lastPrice, history, historyLoading, userId, token, onBack, onTraded, lang }) {
   const [action, setAction] = useState("BUY");
@@ -706,6 +975,29 @@ function CoinDetailView({ coin, price, lastPrice, history, historyLoading, userI
   const [coinValue, setCoinValue] = useState("");
   const [tradeLoading, setTradeLoading] = useState(false);
   const [tradeMessage, setTradeMessage] = useState({ text: "", type: "" });
+  const [timeframe, setTimeframe] = useState("15m");
+
+  // Grafik Kiyaslama Modulu (Ferhat)
+  const [compareList, setCompareList] = useState([]);
+  const [compareData, setCompareData] = useState({});
+  const [compareOpen, setCompareOpen] = useState(false);
+
+  const toggleCompareCoin = async (sym) => {
+    if (compareList.includes(sym)) {
+      setCompareList(compareList.filter((s) => s !== sym));
+    } else {
+      if (!compareData[sym]) {
+        try {
+          const res = await fetch(`${API_BASE}/api/market/history?asset=${sym}`);
+          const data = await res.json();
+          setCompareData((prev) => ({ ...prev, [sym]: data })); // Tam veri, dilimleme render'da yapılıyor (Ferhat)
+        } catch (e) {
+          console.error(e);
+        }
+      }
+      setCompareList([...compareList, sym]);
+    }
+  };
 
   const coinInfo = COINS.find((c) => c.symbol === coin);
 
@@ -772,6 +1064,64 @@ function CoinDetailView({ coin, price, lastPrice, history, historyLoading, userI
     }
   };
 
+  const compareDropdown = (
+    <div style={{ position: "relative", zIndex: 10 }}>
+      <button
+        onClick={() => setCompareOpen(!compareOpen)}
+        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all duration-150 active:scale-[0.97]"
+        style={{
+          background: compareList.length > 0 ? "rgba(253,199,0,0.08)" : COLORS.inputBg,
+          borderColor: compareList.length > 0 ? COLORS.yellow : COLORS.inputBorder,
+          color: compareList.length > 0 ? COLORS.yellow : COLORS.textMain
+        }}
+      >
+        <span>{lang === "TR" ? "Kıyasla" : "Compare"} ({compareList.length})</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ width: 10, height: 10, transform: compareOpen ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s ease" }}>
+          <path d="M6 9l6 6 6-6" />
+        </svg>
+      </button>
+
+      {compareOpen && (
+        <>
+          <div className="fixed inset-0" style={{ zIndex: 9 }} onClick={() => setCompareOpen(false)} />
+          <div className="absolute right-0 mt-1.5 rounded-xl border p-2 flex flex-col gap-1 w-44" style={{ zIndex: 10, background: COLORS.card, borderColor: COLORS.cardBorder, boxShadow: "0 10px 25px -5px rgba(0,0,0,0.5)" }}>
+            {COINS.filter((c) => c.symbol !== coin).map((c) => {
+              const checked = compareList.includes(c.symbol);
+              return (
+                <button
+                  key={c.symbol}
+                  type="button"
+                  onClick={() => toggleCompareCoin(c.symbol)}
+                  className="flex items-center justify-between w-full text-left px-2.5 py-1.5 rounded-lg text-[11.5px] font-medium transition-all"
+                  style={{
+                    background: checked ? "rgba(253,199,0,0.05)" : "transparent",
+                    color: checked ? COLORS.yellow : COLORS.textMain
+                  }}
+                  onMouseEnter={(e) => { if (!checked) e.currentTarget.style.background = COLORS.inputBg; }}
+                  onMouseLeave={(e) => { if (!checked) e.currentTarget.style.background = "transparent"; }}
+                >
+                  <span className="flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full" style={{ background: c.badgeBg }} />
+                    {c.name}
+                  </span>
+                  <input
+                    type="checkbox"
+                    checked={checked}
+                    readOnly
+                    style={{
+                      accentColor: COLORS.yellow,
+                      cursor: "pointer"
+                    }}
+                  />
+                </button>
+              );
+            })}
+          </div>
+        </>
+      )}
+    </div>
+  );
+
   return (
     <div className="max-w-[1000px] w-full mx-auto">
       <button
@@ -794,16 +1144,53 @@ function CoinDetailView({ coin, price, lastPrice, history, historyLoading, userI
             {change && <span className="text-sm" style={{ color: change.up ? COLORS.successText : COLORS.errorText }}>{change.text}</span>}
           </div>
         </div>
+        <div className="flex gap-1 ml-auto" style={{ background: COLORS.inputBg, borderRadius: 10, padding: "3px", border: `1px solid ${COLORS.cardBorder}` }}>
+          {[["15m", 60], ["30m", 120], ["1h", 240], ["all", null]].map(([tf]) => (
+            <button
+              key={tf}
+              onClick={() => setTimeframe(tf)}
+              style={{
+                padding: "3px 10px",
+                borderRadius: 7,
+                fontSize: 11,
+                fontWeight: 700,
+                transition: "all 0.15s ease",
+                background: timeframe === tf ? COLORS.yellow : "transparent",
+                color: timeframe === tf ? "#000" : COLORS.textMuted,
+                border: "none",
+                cursor: "pointer"
+              }}
+            >
+              {tf}
+            </button>
+          ))}
+        </div>
       </div>
 
       <div className="grid grid-cols-12 gap-5">
-        <Card title={t("priceChart", lang)} className="col-span-12 lg:col-span-7" height={480}>
+        <Card title={t("priceChart", lang)} className="col-span-12 lg:col-span-7" height={480} right={compareDropdown}>
           {historyLoading ? (
             <div className="flex items-center justify-center gap-2" style={{ height: 220, color: COLORS.textMuted, fontSize: 13 }}>
               <Spinner /> {t("loading", lang)}
             </div>
           ) : (
-            <LineChart points={history} />
+            <LineChart
+              points={(() => {
+                const sliceCount = timeframe === "15m" ? 60 : timeframe === "30m" ? 120 : timeframe === "1h" ? 240 : history.length;
+                return history.slice(-sliceCount);
+              })()}
+              mainSymbol={coin}
+              compareList={compareList}
+              compareData={(() => {
+                if (timeframe === "all") return compareData;
+                const sliceCount = timeframe === "15m" ? 60 : timeframe === "30m" ? 120 : timeframe === "1h" ? 240 : null;
+                if (!sliceCount) return compareData;
+                const sliced = {};
+                Object.entries(compareData).forEach(([k, v]) => { sliced[k] = v.slice(-sliceCount); });
+                return sliced;
+              })()}
+              lang={lang}
+            />
           )}
         </Card>
 
@@ -1673,7 +2060,7 @@ function Dashboard({ session, onLogout, onAccountDeleted, theme, setTheme, lang,
     try {
       const res = await fetch(`${API_BASE}/api/market/history?asset=${symbol}`);
       const data = await res.json();
-      setDetailHistory(data.slice(-60));
+      setDetailHistory(data); // Tüm veriyi sakla, dilimleme CoinDetailView içinde timeframe'e göre yapılıyor (Ferhat)
     } catch (err) {
       setDetailHistory([]);
     } finally {
